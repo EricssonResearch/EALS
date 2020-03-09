@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Protecting EST Payloads with OSCORE</title>
+<meta content="Göran Selander" name="author">
+<meta content="Shahid Raza" name="author">
+<meta content="Martin Furuhed" name="author">
+<meta content="Malisa Vucinic" name="author">
+<meta content="Timothy Claeys" name="author">
+<meta content="
+       This document specifies public-key certificate enrollment procedures protected with application-layer security protocols suitable for Internet of Things (IoT) deployments. The protocols leverage payload formats defined in Enrollment over Secure Transport (EST) and existing IoT standards including the Constrained Application Protocol (CoAP), Concise Binary Object Representation (CBOR) and the CBOR Object Signing and Encryption (COSE) format. 
+    " name="description">
+<meta content="xml2rfc 2.40.1" name="generator">
+<meta content="Internet-Draft" name="keyword">
+<meta content="draft-selander-ace-coap-est-oscore-latest" name="ietf.draft">
+<link href="draft-selander-ace-coap-est-oscore.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@import url('https://martinthomson.github.io/i-d-template/fonts.css');
+
+html {
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --small-font-size: 14.5px;
+}
+body {
+  max-width: 624px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+#title, h1, h2, h3, h4, h5, h6 {
+  font-family: "Cabin Condensed", sans-serif;
+  font-weight: 600;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+#title {
+  padding: 1em 0 0.2em;
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 26px;
+}
+h4, h5, h6 {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+}
+#abstract+p, #abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 18px;
+  line-height: 24px;
+}
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div, span {
+  position: relative;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 1em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl > dd {
+  margin-bottom: .8em;
+  min-height: 1.3em;
+}
+dl.compact > dd, .dlCompact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href].selfRef {
+  color: var(--text-color);
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px 'Oxygen Mono', monospace;
+}
+pre {
+  border: 1px solid var(--line-color);
+  line-height: 17px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+}
+@media screen {
+  pre {
+    display: inline-block;
+    overflow-x: auto;
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  pre + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+  table {
+    display: inline-block;
+    overflow-x: auto;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.75em;
+}
+th {
+  text-align: left;
+  background-color: #eee;
+}
+tr:nth-child(2n) > td {
+  background-color: var(--background-color);
+}
+tr:nth-child(2n+1) > td {
+  background-color: var(--highlight-color);
+}
+thead+tbody tr:nth-child(2n) > td {
+  background-color: var(--highlight-color);
+}
+thead+tbody tr:nth-child(2n+1) > td {
+  background-color: var(--background-color);
+}
+table caption {
+  font-style: italic;
+  margin: 0.3em 0;
+  padding: 0;
+  text-align: left;
+}
+table p {
+  /* XXX to avoid bottom margin on table row signifiers. If paragraphs should
+     be allowed within tables more generally, it would be far better to select on a class. */
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  visibility: hidden;
+  user-select: none;
+}
+a.pilcrow[href] { color: #ddd; }
+a.pilcrow[href]:hover { text-decoration: none; }
+@media screen {
+  :hover > a.pilcrow {
+    visibility: visible;
+  }
+  a.pilcrow:hover {
+    background-color: transparent;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 8em;
+}
+#identifiers dt {
+  width: var(--identifier-width);
+  margin: 0;
+  clear: left;
+  float: left;
+  text-align: right;
+}
+#identifiers dd {
+  margin: 0 0 0 calc(1em + var(--identifier-width));
+  min-width: 5em;
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+#toc nav ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+#toc nav li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+#toc a.xref {
+  white-space: normal;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+.index ul {
+  margin: 0 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.index ul ul {
+  margin: 0;
+}
+.index li {
+  margin: 0;
+  text-indent: -2em;
+  padding-left: 2em;
+  padding-bottom: 5px;
+}
+.indexIndex {
+  margin: 0.5em 0 1em;
+}
+.index a {
+  font-weight: 700;
+}
+/* make the index two-column on all but the smallest screens */
+@media (min-width: 600px) {
+  .index ul {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  .index ul ul {
+    column-count: 1;
+    column-gap: 0;
+  }
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 600px) {
+  #authors-addresses > section {
+    display: relative;
+    padding: 32px 0 0;
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #name-authors-address {
+    position: absolute;
+    top: 0px;
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* temporary notes */
+.rfcEditorRemove::before {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.2em;
+  content: "The RFC Editor will remove this note";
+  color: #b76427;
+  background-color: rgba(249, 232, 105, 0.3);
+}
+.rfcEditorRemove {
+  position: relative;
+  padding-top: 1.8em;
+  background-color: rgba(249, 232, 105, 0.3);
+  border-radius: 3px;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 953px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc.active {
+      opacity: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 8px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active nav {
+    display: block;
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin-top: 2px;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 954px) {
+  body {
+    padding-right: 380px;
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  #toc nav > ul  {
+    margin-bottom: 2em;
+  }
+  #toc ul {
+    margin: 0 0 0 4px;
+    font-size: var(--small-font-size);
+  }
+  #toc ul p, #toc ul li {
+    margin: 2px 0;
+    line-height: 22px;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Changes introduced to fix issues found during implementation */
+
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin: 8px 0.5em 0;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table td.text-left,
+table th.text-left {
+  text-align: left;
+}
+table td.text-center,
+table th.text-center {
+  text-align: center;
+}
+table td.text-right,
+table th.text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 20em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Provide table alignment support.  We can't use the alignX classes above
+   since they do unwanted things with caption and other styling. */
+table.right {
+ margin-left: auto;
+ margin-right: 0;
+}
+table.center {
+ margin-left: auto;
+ margin-right: auto;
+}
+table.left {
+ margin-left: 0;
+ margin-right: auto;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  dd {
+    page-break-before: avoid;
+  }
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+</style>
+<link href="rfc-local.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">EST-oscore</td>
+<td class="right">March 2020</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Selander, et al.</td>
+<td class="center">Expires 10 September 2020</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">ACE Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-selander-ace-coap-est-oscore-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2020-03-09" class="published">9 March 2020</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2020-09-10">10 September 2020</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">G. Selander</div>
+<div class="org">Ericsson AB</div>
+</div>
+<div class="author">
+      <div class="author-name">S. Raza</div>
+<div class="org">RISE</div>
+</div>
+<div class="author">
+      <div class="author-name">M. Furuhed</div>
+<div class="org">Nexus</div>
+</div>
+<div class="author">
+      <div class="author-name">M. Vucinic</div>
+<div class="org">INRIA</div>
+</div>
+<div class="author">
+      <div class="author-name">T. Claeys</div>
+<div class="org">INRIA</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Protecting EST Payloads with OSCORE</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document specifies public-key certificate enrollment procedures protected with application-layer security protocols suitable for Internet of Things (IoT) deployments. The protocols leverage payload formats defined in Enrollment over Secure Transport (EST) and existing IoT standards including the Constrained Application Protocol (CoAP), Concise Binary Object Representation (CBOR) and the CBOR Object Signing and Encryption (COSE) format.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 10 September 2020.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2020 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Simplified BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Simplified BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1"><a href="#section-1" class="xref">1</a>.  <a href="#name-introduction" class="xref">Introduction</a><a href="#section-toc.1-1.1.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1"><a href="#section-1.1" class="xref">1.1</a>.  <a href="#name-est-coaps-operational-diffe" class="xref">EST-coaps operational differences</a><a href="#section-toc.1-1.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="xref">2</a>.  <a href="#name-terminology" class="xref">Terminology</a><a href="#section-toc.1-1.2.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="xref">3</a>.  <a href="#name-oscore-and-authenticated-ke" class="xref">OSCORE and Authenticated Key Establishment</a><a href="#section-toc.1-1.3.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="xref">3.1</a>.  <a href="#name-edhoc" class="xref">EDHOC</a><a href="#section-toc.1-1.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-protocol-design-and-layerin" class="xref">Protocol Design and Layering</a><a href="#section-toc.1-1.4.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="xref">4.1</a>.  <a href="#name-discovery-and-uri" class="xref">Discovery and URI</a><a href="#section-toc.1-1.4.2.1.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="xref">4.2</a>.  <a href="#name-mandatory-optional-est-func" class="xref">Mandatory/optional EST Functions</a><a href="#section-toc.1-1.4.2.2.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="xref">4.3</a>.  <a href="#name-payload-formats" class="xref">Payload formats</a><a href="#section-toc.1-1.4.2.3.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="xref">4.4</a>.  <a href="#name-message-bindings" class="xref">Message Bindings</a><a href="#section-toc.1-1.4.2.4.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="xref">4.5</a>.  <a href="#name-coap-response-codes" class="xref">CoAP response codes</a><a href="#section-toc.1-1.4.2.5.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="xref">4.6</a>.  <a href="#name-message-fragmentation" class="xref">Message fragmentation</a><a href="#section-toc.1-1.4.2.6.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="xref">4.7</a>.  <a href="#name-delayed-responses" class="xref">Delayed Responses</a><a href="#section-toc.1-1.4.2.7.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-http-coap-registrar" class="xref">HTTP-CoAP registrar</a><a href="#section-toc.1-1.5.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a><a href="#section-toc.1-1.6.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-privacy-considerations" class="xref">Privacy Considerations</a><a href="#section-toc.1-1.7.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="xref">8</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a><a href="#section-toc.1-1.8.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="xref">9</a>.  <a href="#name-acknowledgments" class="xref">Acknowledgments</a><a href="#section-toc.1-1.9.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="xref">10</a>. <a href="#name-references" class="xref">References</a><a href="#section-toc.1-1.10.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="xref">10.1</a>.  <a href="#name-normative-references" class="xref">Normative References</a><a href="#section-toc.1-1.10.2.1.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="xref">10.2</a>.  <a href="#name-informative-references" class="xref">Informative References</a><a href="#section-toc.1-1.10.2.2.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-appendix.a" class="xref">Appendix A</a>.  <a href="#name-other-authentication-method" class="xref">Other Authentication Methods</a><a href="#section-toc.1-1.11.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-a.1" class="xref">A.1</a>.  <a href="#name-ttp-assisted-authentication" class="xref">TTP Assisted Authentication</a><a href="#section-toc.1-1.11.2.1.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-a.2" class="xref">A.2</a>.  <a href="#name-psk-based-authentication" class="xref">PSK Based Authentication</a><a href="#section-toc.1-1.11.2.2.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.11.2.3">
+                <p id="section-toc.1-1.11.2.3.1"><a href="#section-a.3" class="xref">A.3</a>.  <a href="#name-edhoc-with-alternative-auth" class="xref">EDHOC with alternative authentication methods</a><a href="#section-toc.1-1.11.2.3.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-appendix.b" class="xref">Appendix B</a>.  <a href="#name-cbor-encoding-of-est-payloa" class="xref">CBOR Encoding of EST Payloads</a><a href="#section-toc.1-1.12.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-b.1" class="xref">B.1</a>.  <a href="#name-distribution-of-ca-certific" class="xref">Distribution of CA Certificates (/crts)</a><a href="#section-toc.1-1.12.2.1.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-b.2" class="xref">B.2</a>.  <a href="#name-enrollment-re-enrollment-of" class="xref">Enrollment/Re-enrollment of Clients (/sen, /sren)</a><a href="#section-toc.1-1.12.2.2.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.12.2.2.2.1">
+                    <p id="section-toc.1-1.12.2.2.2.1.1"><a href="#section-b.2.1" class="xref">B.2.1</a>.  <a href="#name-cbor-certificate-request-ex" class="xref">CBOR Certificate Request Examples</a><a href="#section-toc.1-1.12.2.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.12.2.2.2.2">
+                    <p id="section-toc.1-1.12.2.2.2.2.1"><a href="#section-b.2.2" class="xref">B.2.2</a>.  <a href="#name-asn1-certificate-request-ex" class="xref">ASN.1 Certificate Request Examples</a><a href="#section-toc.1-1.12.2.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#section-appendix.c" class="xref">Appendix C</a>.  <a href="#name-other-explicit-ta-material" class="xref">Other Explicit TA Material</a><a href="#section-toc.1-1.13.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#section-appendix.d" class="xref"></a><a href="#name-authors-addresses" class="xref">Authors' Addresses</a><a href="#section-toc.1-1.14.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</nav>
+</section>
+</div>
+<div id="intro">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">One of the challenges with deploying a Public Key Infrastructure (PKI) for the Internet of Things (IoT) is certificate enrollment, because existing enrollment protocols are not optimized for constrained environments <span>[<a href="#RFC7228" class="xref">RFC7228</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">One optimization of certificate enrollment targeting IoT deployments is specified in EST-coaps (<span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>), which defines a version of Enrollment over Secure Transport <span>[<a href="#RFC7030" class="xref">RFC7030</a>]</span> for transporting EST payloads over CoAP <span>[<a href="#RFC7252" class="xref">RFC7252</a>]</span> and DTLS <span>[<a href="#RFC6347" class="xref">RFC6347</a>]</span>, instead of secured HTTP.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This document describes a method for protecting EST payloads over CoAP or HTTP with OSCORE <span>[<a href="#RFC8613" class="xref">RFC8613</a>]</span>. OSCORE specifies an extension to CoAP which protects the application layer message and can be applied independently of how CoAP messages are transported. OSCORE can also be applied to CoAP-mappable HTTP which enables end-to-end security for mixed CoAP and HTTP transfer of application layer data. Hence EST payloads can be protected end-to-end independent of underlying transport and through proxies translating between between CoAP and HTTP.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">OSCORE is designed for constrained environments, building on IoT standards such as CoAP, CBOR <span>[<a href="#RFC7049" class="xref">RFC7049</a>]</span> and COSE <span>[<a href="#RFC8152" class="xref">RFC8152</a>]</span>, and has in particular gained traction in settings where message sizes and the number of exchanged messages needs to be kept at a minimum, see e.g. <span>[<a href="#I-D.ietf-6tisch-minimal-security" class="xref">I-D.ietf-6tisch-minimal-security</a>]</span>, or for securing multicast CoAP messages <span>[<a href="#I-D.ietf-core-oscore-groupcomm" class="xref">I-D.ietf-core-oscore-groupcomm</a>]</span>. Where OSCORE is implemented and used for communication security, the reuse of OSCORE for other purposes, such as enrollment, reduces the implementation footprint.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">In order to protect certificate enrollment with OSCORE, the necessary keying material (notably, the OSCORE Master Secret, see <span>[<a href="#RFC8613" class="xref">RFC8613</a>]</span>) needs to be established between CoAP client and server, e.g. using a key exchange protocol; a trusted third party; or pre-established keys. Different options are allowed and with different properties as is indicated in the next section.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">Yet other optimizations to certificate based enrollment are possible further improve the performance of certificate enrollment and certificate based authentication, in particular the use of more compact representations of X.509 certificates such as <span>[<a href="#I-D.raza-ace-cbor-certificates" class="xref">I-D.raza-ace-cbor-certificates</a>]</span>.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<div id="operational">
+<section id="section-1.1">
+        <h3 id="name-est-coaps-operational-diffe">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-est-coaps-operational-diffe" class="section-name selfRef">EST-coaps operational differences</a>
+        </h3>
+<p id="section-1.1-1">This specification builds on EST-coaps <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> but transport layer security provided by DTLS is replaced, or complemented, by protection of the application layer data. This specification deviates from EST-coaps in the following respects:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-1.1-2.1">The DTLS record layer is replaced, or complemented, with OSCORE.<a href="#section-1.1-2.1" class="pilcrow">¶</a>
+</li>
+<li id="section-1.1-2.2">
+            <p id="section-1.1-2.2.1">The DTLS handshake is replaced, or complemented, with the EDHOC key exchange protocol <span>[<a href="#I-D.selander-ace-cose-ecdhe" class="xref">I-D.selander-ace-cose-ecdhe</a>]</span>. The use of certificate authentication with EDHOC completes the analogy with EST-coaps, and provides perfect forward secrecy (PFS) of the keys used to protect the EST messages. However, PFS is not necessary for the enrollment procedure and adds significant overhead in terms of message size and round trips. EDHOC can also leverage its support for static Diffie-Hellman keys. The latter implies that the certificates contain public keys that can be used for a Diffie-Hellman key exchange.<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-1.1-2.2.2.1">
+                <a href="#alternative-auth" class="xref">Appendix A</a> discusses alternative authenticated key exchange methods.<a href="#section-1.1-2.2.2.1" class="pilcrow">¶</a>
+</li>
+</ul>
+</li>
+<li id="section-1.1-2.3">The EST payloads protected by OSCORE can be proxied between constrained networks supporting CoAP/CoAPs and non-constrained networks supporting HTTP/HTTPs with a CoAP-HTTP proxy protection without any security processing in the proxy.<a href="#section-1.1-2.3" class="pilcrow">¶</a>
+</li>
+</ul>
+</section>
+</div>
+</section>
+</div>
+<div id="terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in <span>[<a href="#RFC2119" class="xref">RFC2119</a>]</span>. These
+words may also appear in this document in lowercase, absent their
+normative meanings.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document uses terminology from <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> which in turn is based on <span>[<a href="#RFC7030" class="xref">RFC7030</a>]</span> and, in turn, on <span>[<a href="#RFC5272" class="xref">RFC5272</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="oscore-and-authenticated-key-establishment">
+<section id="section-3">
+      <h2 id="name-oscore-and-authenticated-ke">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-oscore-and-authenticated-ke" class="section-name selfRef">OSCORE and Authenticated Key Establishment</a>
+      </h2>
+<p id="section-3-1">EST-oscore clients and servers MUST perform mutual authentication before EST-oscore functions and services can be accessed. Prior to the initial enrollment the client MUST be configured with an Implicit Trust Anchor (TA) <span>[<a href="#RFC7030" class="xref">RFC7030</a>]</span> database, enabling the client to authenticate the server. During the initial enrollment the client SHOULD populate its Explicit TA database and use it for subsequent authentications.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">The EST-coaps specification <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> only supports certificate-based authentication during the DTLS handshake between the EST-coaps server and the client. This specification replaces the DTLS handshake with the certificate-based EDHOC key exchange protocol but provides additional authenticated methods in the <a href="#alternative-auth" class="xref">Appendix A</a><a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">The <span>[<a href="#RFC5272" class="xref">RFC5272</a>]</span> specification describes proof-of-identity as the ability of an endpoint, i.e., client, to prove its possession of a private key which is linked to a certified public key. Additionally, the RFC details how to use channel-binding information (extracted from the underlying TLS layer) to link the proof-of-identity to a proof-of-possession. A proof-of-possession is generated by the client when it signs the PKCS#10 Request during the enrollment phase. Connection-based proof-of-possession is OPTIONAL for EST-oscore clients and servers. In case of certificate-based EDHOC key establishment, a set of actions are required which are further described below.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<div id="edhoc">
+<section id="section-3.1">
+        <h3 id="name-edhoc">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-edhoc" class="section-name selfRef">EDHOC</a>
+        </h3>
+<p id="section-3.1-1">The EST-oscore client and server use the EDHOC key establishment protocol to populate the OSCORE security context. The endpoints MUST use public key certificates to perform mutual authentication. During the initial enrollment the Implicit TA database MUST contain certificates capable of authenticating the EST-oscore server. When the EST-oscore client issues a request to the /crts endpoint of the EST server, it SHALL return a bag of certificates to be installed in the Explicit TA database.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">The cryptographic material used for EST-oscore client authentication can either be<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-3.1-3.1">previously issued certificates (e.g., an existing certificate issued by the EST server); this could be a common case for simple re-enrollment of clients.<a href="#section-3.1-3.1" class="pilcrow">¶</a>
+</li>
+<li id="section-3.1-3.2">previously installed certificates (e.g., installed by the manufacturer). Manufacturer installed certificates are expected to have a very long life, as long as the device, but under some conditions could expire. In that case, the server MAY authenticate a client certificate against its trust store although the certificate is expired (<a href="#sec-cons" class="xref">Section 6</a>).<a href="#section-3.1-3.2" class="pilcrow">¶</a>
+</li>
+</ul>
+<p id="section-3.1-4">When desired the client can use the EDHOC-Exporter API to extract channel-binding information and provide a connection-based proof-of possession. Channel-binding information is obtained as follows<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-5">edhoc-unique = EDHOC-Exporter("EDHOC Unique", length),<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">where length equals the desired length of the edhoc-unique byte string. The client then adds the edhoc-unique byte string as a ChallengePassword in the attributes section of the PKCS#10 Request to prove that the client is indeed in control of the private key at the time of the EDHOC key exchange.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="protocol-design-and-layering">
+<section id="section-4">
+      <h2 id="name-protocol-design-and-layerin">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-protocol-design-and-layerin" class="section-name selfRef">Protocol Design and Layering</a>
+      </h2>
+<p id="section-4-1">EST-oscore uses CoAP <span>[<a href="#RFC7252" class="xref">RFC7252</a>]</span> and Block-Wise <span>[<a href="#RFC7959" class="xref">RFC7959</a>]</span> to transfer EST messages in the same way as <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>. <a href="#fig-stack" class="xref">Figure 1</a> below shows the layered EST-oscore architecture.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span id="name-est-protected-with-oscore"></span><div id="fig-stack">
+<figure id="figure-1">
+        <div class="artwork art-text alignCenter" id="section-4-2.1">
+<pre>
++------------------------------------------------+
+|          EST request/response messages         |
++------------------------------------------------+
+|   CoAP with OSCORE   |   HTTP with OSCORE      |
++------------------------------------------------+
+|   UDP  |  DTLS/UDP   |   TCP   |   TLS/TCP     |
++------------------------------------------------+
+
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-est-protected-with-oscore" class="selfRef">EST protected with OSCORE.</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-3">EST-oscore follows closely the EST-coaps and EST design.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<div id="discovery">
+<section id="section-4.1">
+        <h3 id="name-discovery-and-uri">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-discovery-and-uri" class="section-name selfRef">Discovery and URI</a>
+        </h3>
+<p id="section-4.1-1">The discovery of EST resources and the definition of the short EST-coaps URI paths specified in Section 5.1 of <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>, as well as the new Resource Type defined in Section 9.1 of <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> apply to EST-oscore. Support for OSCORE is indicated by the "osc" attribute defined in Section 9 of <span>[<a href="#RFC8613" class="xref">RFC8613</a>]</span>, for example:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-4.1-2">
+<pre>
+     REQ: GET /.well-known/core?rt=ace.est.sen
+
+     RES: 2.05 Content
+   &lt;/est&gt;; rt="ace.est";osc
+
+</pre><a href="#section-4.1-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="est-functions">
+<section id="section-4.2">
+        <h3 id="name-mandatory-optional-est-func">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-mandatory-optional-est-func" class="section-name selfRef">Mandatory/optional EST Functions</a>
+        </h3>
+<p id="section-4.2-1">The EST-oscore specification has the same set of required-to-implement functions as EST-coaps. The content of <a href="#table_functions" class="xref">Table 1</a> is adapted from Section 5.2 in <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> and uses the updated URI paths (see <a href="#discovery" class="xref">Section 4.1</a>).<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span id="name-mandatory-and-optional-est-"></span><div id="table_functions">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-mandatory-and-optional-est-" class="selfRef">Mandatory and optional EST-oscore functions</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">EST functions</th>
+              <th class="text-left" rowspan="1" colspan="1">EST-oscore implementation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/crts</td>
+              <td class="text-left" rowspan="1" colspan="1">MUST</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/sen</td>
+              <td class="text-left" rowspan="1" colspan="1">MUST</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/sren</td>
+              <td class="text-left" rowspan="1" colspan="1">MUST</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/skg</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/skc</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/att</td>
+              <td class="text-left" rowspan="1" colspan="1">OPTIONAL</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+</section>
+</div>
+<div id="payload-formats">
+<section id="section-4.3">
+        <h3 id="name-payload-formats">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-payload-formats" class="section-name selfRef">Payload formats</a>
+        </h3>
+<p id="section-4.3-1">Similar to EST-coaps, EST-oscore transports the ASN.1 structure of a given Media-Type in binary format. In addition, it uses the same CoAP Content-Format Options to transport EST requests and responses. <a href="#table_mediatypes" class="xref">Table 2</a> summarizes the information from Section 5.3 in <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span id="name-est-functions-and-there-ass"></span><div id="table_mediatypes">
+<table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-est-functions-and-there-ass" class="selfRef">EST functions and there associated Media-Type and IANA numbers</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">URI</th>
+              <th class="text-left" rowspan="1" colspan="1">Content-Format</th>
+              <th class="text-left" rowspan="1" colspan="1">#IANA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/crts</td>
+              <td class="text-left" rowspan="1" colspan="1">N/A                                            (req)</td>
+              <td class="text-left" rowspan="1" colspan="1">-</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkix-cert                          (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">287</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs-7-mime;smime-type=certs-only  (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">281</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/sen</td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs10                             (req)</td>
+              <td class="text-left" rowspan="1" colspan="1">286</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkix-cert                          (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">287</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs-7-mime;smime-type=certs-only  (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">281</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/sren</td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs10                             (req)</td>
+              <td class="text-left" rowspan="1" colspan="1">286</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkix-cert                          (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">287</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs-7-mime;smime-type=certs-only  (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">281</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/skg</td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs10                             (req)</td>
+              <td class="text-left" rowspan="1" colspan="1">286</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/multipart-core                     (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">62</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/skc</td>
+              <td class="text-left" rowspan="1" colspan="1">application/pkcs10                             (req)</td>
+              <td class="text-left" rowspan="1" colspan="1">286</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/multipart-core                     (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">62</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">/att</td>
+              <td class="text-left" rowspan="1" colspan="1">N/A                                            (req)</td>
+              <td class="text-left" rowspan="1" colspan="1">-</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1"> </td>
+              <td class="text-left" rowspan="1" colspan="1">application/csrattrs                           (res)</td>
+              <td class="text-left" rowspan="1" colspan="1">285</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-4.3-3">NOTE: CBOR is becoming a de facto encoding scheme in IoT settings. There is already work in progress on CBOR encoding of X.509 certificates <span>[<a href="#I-D.raza-ace-cbor-certificates" class="xref">I-D.raza-ace-cbor-certificates</a>]</span>, and this can be extended to other EST messages.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="message-bindings">
+<section id="section-4.4">
+        <h3 id="name-message-bindings">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-message-bindings" class="section-name selfRef">Message Bindings</a>
+        </h3>
+<p id="section-4.4-1">The EST-oscore message characteristics are identical to those specified in Section 5.4 of <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>. It is RECOMMENDED that<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-4.4-2.1">The EST-oscore endpoints support delayed responses<a href="#section-4.4-2.1" class="pilcrow">¶</a>
+</li>
+<li id="section-4.4-2.2">The endpoints supports the following CoAP options: OSCORE, Uri-Host, Uri-Path, Uri-Port, Content-Format, Block1, Block2, and Accept.<a href="#section-4.4-2.2" class="pilcrow">¶</a>
+</li>
+<li id="section-4.4-2.3">The EST URLs based on https:// are translated to coap://, but with mandatory use of the CoAP OSCORE option.<a href="#section-4.4-2.3" class="pilcrow">¶</a>
+</li>
+</ul>
+</section>
+</div>
+<div id="coap-response-codes">
+<section id="section-4.5">
+        <h3 id="name-coap-response-codes">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-coap-response-codes" class="section-name selfRef">CoAP response codes</a>
+        </h3>
+<p id="section-4.5-1">See Section 5.5 in <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="message-fragmentation">
+<section id="section-4.6">
+        <h3 id="name-message-fragmentation">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-message-fragmentation" class="section-name selfRef">Message fragmentation</a>
+        </h3>
+<p id="section-4.6-1">The EDHOC key exchange with asymmetric keys and certificates for authentication can result in large messages. It is RECOMMENDED to prevent IP fragmentation, since it involves an error-prone datagram reconstitution. In addition, this specification targets resource constrained networks such as IEEE 802.15.4 where throughput is limited and fragment loss can trigger costly retransmissions. Even though ECC-based certificates are an improvement over the RSA or DSA counterparts, they can still amount to roughly a 1000 bytes per certificate depending on the used algorithms, curves, OIDs, Subject Alternative Names (SAN) and cert fields. Additionally, in response to a client request to /crts an EST-oscore server might answer with multiple certificates. This specification employs the CoAP Block1 and Block2 fragmentation mechanisms as described in Section 5.6 of <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> to limit the size of the CoAP payload.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="delayed-responses">
+<section id="section-4.7">
+        <h3 id="name-delayed-responses">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-delayed-responses" class="section-name selfRef">Delayed Responses</a>
+        </h3>
+<p id="section-4.7-1">See Section 5.7 in <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>.<a href="#section-4.7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="http-coap-registrar">
+<section id="section-5">
+      <h2 id="name-http-coap-registrar">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-http-coap-registrar" class="section-name selfRef">HTTP-CoAP registrar</a>
+      </h2>
+<p id="section-5-1">As is noted in Section 6 of <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span>, in real-world deployments, the EST server will not always reside within the CoAP boundary.  The EST-server can exist outside the constrained network in a non-constrained network that does not support CoAP but HTTP, thus requiring an intermediary CoAP-to-HTTP proxy.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">Since OSCORE is applicable to CoAP-mappable HTTP the EST payloads can be protected end-to-end between EST client and EST server independent of transport protocol or potential transport layer security which may need to be terminated in the proxy, see <a href="#fig-proxy" class="xref">Figure 2</a>. When using the EDHOC key exchange protocol to establish a shared OSCORE security context, PKCS#10 request MAY be bound to the OSCORE security context using the procedure described in <a href="#edhoc" class="xref">Section 3.1</a>. The mappings between CoAP and HTTP referred to in Section 6 of <span>[<a href="#I-D.ietf-ace-coap-est" class="xref">I-D.ietf-ace-coap-est</a>]</span> apply and the additional mappings resulting from the use of OSCORE are specified in Section 11 of <span>[<a href="#RFC8613" class="xref">RFC8613</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">OSCORE provides end-to-end security between EST Server and EST Client. The use of TLS and DTLS is optional.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<span id="name-coap-to-http-proxy-at-the-c"></span><div id="fig-proxy">
+<figure id="figure-2">
+        <div class="artwork art-text alignCenter" id="section-5-4.1">
+<pre>
+                                       Constrained-Node Network
+  .---------.                       .----------------------------.
+  |   CA    |                       |.--------------------------.|
+  '---------'                       ||                          ||
+       |                            ||                          ||
+   .------.  HTTP   .-----------------.   CoAP   .-----------.  ||
+   | EST  |&lt;-------&gt;|  CoAP-to-HTTP   |&lt;--------&gt;| EST Client|  ||
+   |Server|  (TLS)  |      Proxy      |  (DTLS)  '-----------'  ||
+   '------'         '-----------------'                         ||
+                                    ||                          ||
+       &lt;------------------------------------------------&gt;       ||
+                        OSCORE      ||                          ||
+                                    |'--------------------------'|
+                                    '----------------------------'
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-coap-to-http-proxy-at-the-c" class="selfRef">CoAP-to-HTTP proxy at the CoAP boundary.</a>
+        </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="sec-cons">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-6-1">TBD<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-7">
+      <h2 id="name-privacy-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-7-1">TBD<a href="#section-7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana">
+<section id="section-8">
+      <h2 id="name-iana-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+    </h2>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="section-9">
+      <h2 id="name-acknowledgments">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+    </h2>
+</section>
+</div>
+<section id="section-10">
+      <h2 id="name-references">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-10.1">
+        <h3 id="name-normative-references">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-ace-coap-est">[I-D.ietf-ace-coap-est]</dt>
+<dd>
+<span class="refAuthor">Stok, P.</span><span class="refAuthor">, Kampanakis, P.</span><span class="refAuthor">, Richardson, M.</span><span class="refAuthor">, and S. Raza</span>, <span class="refTitle">"EST over secure CoAP (EST-coaps)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-ace-coap-est-18</span>, <time datetime="2020-01-06">6 January 2020</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-ietf-ace-coap-est-18.txt">http://www.ietf.org/internet-drafts/draft-ietf-ace-coap-est-18.txt</a>&gt;</span>. </dd>
+<dt id="RFC2119">[RFC2119]</dt>
+<dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
+<dt id="RFC7049">[RFC7049]</dt>
+<dd>
+<span class="refAuthor">Bormann, C.</span><span class="refAuthor"> and P. Hoffman</span>, <span class="refTitle">"Concise Binary Object Representation (CBOR)"</span>, <span class="seriesInfo">RFC 7049</span>, <span class="seriesInfo">DOI 10.17487/RFC7049</span>, <time datetime="2013-10">October 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7049">https://www.rfc-editor.org/info/rfc7049</a>&gt;</span>. </dd>
+<dt id="RFC7252">[RFC7252]</dt>
+<dd>
+<span class="refAuthor">Shelby, Z.</span><span class="refAuthor">, Hartke, K.</span><span class="refAuthor">, and C. Bormann</span>, <span class="refTitle">"The Constrained Application Protocol (CoAP)"</span>, <span class="seriesInfo">RFC 7252</span>, <span class="seriesInfo">DOI 10.17487/RFC7252</span>, <time datetime="2014-06">June 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7252">https://www.rfc-editor.org/info/rfc7252</a>&gt;</span>. </dd>
+<dt id="RFC7959">[RFC7959]</dt>
+<dd>
+<span class="refAuthor">Bormann, C.</span><span class="refAuthor"> and Z. Shelby, Ed.</span>, <span class="refTitle">"Block-Wise Transfers in the Constrained Application Protocol (CoAP)"</span>, <span class="seriesInfo">RFC 7959</span>, <span class="seriesInfo">DOI 10.17487/RFC7959</span>, <time datetime="2016-08">August 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7959">https://www.rfc-editor.org/info/rfc7959</a>&gt;</span>. </dd>
+<dt id="RFC8152">[RFC8152]</dt>
+<dd>
+<span class="refAuthor">Schaad, J.</span>, <span class="refTitle">"CBOR Object Signing and Encryption (COSE)"</span>, <span class="seriesInfo">RFC 8152</span>, <span class="seriesInfo">DOI 10.17487/RFC8152</span>, <time datetime="2017-07">July 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8152">https://www.rfc-editor.org/info/rfc8152</a>&gt;</span>. </dd>
+<dt id="RFC8613">[RFC8613]</dt>
+<dd>
+<span class="refAuthor">Selander, G.</span><span class="refAuthor">, Mattsson, J.</span><span class="refAuthor">, Palombini, F.</span><span class="refAuthor">, and L. Seitz</span>, <span class="refTitle">"Object Security for Constrained RESTful Environments (OSCORE)"</span>, <span class="seriesInfo">RFC 8613</span>, <span class="seriesInfo">DOI 10.17487/RFC8613</span>, <time datetime="2019-07">July 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8613">https://www.rfc-editor.org/info/rfc8613</a>&gt;</span>. </dd>
+</dl>
+</section>
+<section id="section-10.2">
+        <h3 id="name-informative-references">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-6tisch-minimal-security">[I-D.ietf-6tisch-minimal-security]</dt>
+<dd>
+<span class="refAuthor">Vucinic, M.</span><span class="refAuthor">, Simon, J.</span><span class="refAuthor">, Pister, K.</span><span class="refAuthor">, and M. Richardson</span>, <span class="refTitle">"Constrained Join Protocol (CoJP) for 6TiSCH"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-6tisch-minimal-security-15</span>, <time datetime="2019-12-10">10 December 2019</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-ietf-6tisch-minimal-security-15.txt">http://www.ietf.org/internet-drafts/draft-ietf-6tisch-minimal-security-15.txt</a>&gt;</span>. </dd>
+<dt id="I-D.ietf-ace-oauth-authz">[I-D.ietf-ace-oauth-authz]</dt>
+<dd>
+<span class="refAuthor">Seitz, L.</span><span class="refAuthor">, Selander, G.</span><span class="refAuthor">, Wahlstroem, E.</span><span class="refAuthor">, Erdtman, S.</span><span class="refAuthor">, and H. Tschofenig</span>, <span class="refTitle">"Authentication and Authorization for Constrained Environments (ACE) using the OAuth 2.0 Framework (ACE-OAuth)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-ace-oauth-authz-33</span>, <time datetime="2020-02-06">6 February 2020</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-ietf-ace-oauth-authz-33.txt">http://www.ietf.org/internet-drafts/draft-ietf-ace-oauth-authz-33.txt</a>&gt;</span>. </dd>
+<dt id="I-D.ietf-ace-oscore-profile">[I-D.ietf-ace-oscore-profile]</dt>
+<dd>
+<span class="refAuthor">Palombini, F.</span><span class="refAuthor">, Seitz, L.</span><span class="refAuthor">, Selander, G.</span><span class="refAuthor">, and M. Gunnarsson</span>, <span class="refTitle">"OSCORE profile of the Authentication and Authorization for Constrained Environments Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-ace-oscore-profile-09</span>, <time datetime="2020-03-02">2 March 2020</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-ietf-ace-oscore-profile-09.txt">http://www.ietf.org/internet-drafts/draft-ietf-ace-oscore-profile-09.txt</a>&gt;</span>. </dd>
+<dt id="I-D.ietf-core-oscore-groupcomm">[I-D.ietf-core-oscore-groupcomm]</dt>
+<dd>
+<span class="refAuthor">Tiloca, M.</span><span class="refAuthor">, Selander, G.</span><span class="refAuthor">, Palombini, F.</span><span class="refAuthor">, and J. Park</span>, <span class="refTitle">"Group OSCORE - Secure Group Communication for CoAP"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-core-oscore-groupcomm-06</span>, <time datetime="2019-11-04">4 November 2019</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-ietf-core-oscore-groupcomm-06.txt">http://www.ietf.org/internet-drafts/draft-ietf-core-oscore-groupcomm-06.txt</a>&gt;</span>. </dd>
+<dt id="I-D.raza-ace-cbor-certificates">[I-D.raza-ace-cbor-certificates]</dt>
+<dd>
+<span class="refAuthor">Raza, S.</span><span class="refAuthor">, Hoglund, J.</span><span class="refAuthor">, Selander, G.</span><span class="refAuthor">, Mattsson, J.</span><span class="refAuthor">, and M. Furuhed</span>, <span class="refTitle">"CBOR Profile of X.509 Certificates"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-raza-ace-cbor-certificates-03</span>, <time datetime="2019-12-20">20 December 2019</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-raza-ace-cbor-certificates-03.txt">http://www.ietf.org/internet-drafts/draft-raza-ace-cbor-certificates-03.txt</a>&gt;</span>. </dd>
+<dt id="I-D.selander-ace-cose-ecdhe">[I-D.selander-ace-cose-ecdhe]</dt>
+<dd>
+<span class="refAuthor">Selander, G.</span><span class="refAuthor">, Mattsson, J.</span><span class="refAuthor">, and F. Palombini</span>, <span class="refTitle">"Ephemeral Diffie-Hellman Over COSE (EDHOC)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-selander-ace-cose-ecdhe-14</span>, <time datetime="2019-09-11">11 September 2019</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-selander-ace-cose-ecdhe-14.txt">http://www.ietf.org/internet-drafts/draft-selander-ace-cose-ecdhe-14.txt</a>&gt;</span>. </dd>
+<dt id="RFC2985">[RFC2985]</dt>
+<dd>
+<span class="refAuthor">Nystrom, M.</span><span class="refAuthor"> and B. Kaliski</span>, <span class="refTitle">"PKCS #9: Selected Object Classes and Attribute Types Version 2.0"</span>, <span class="seriesInfo">RFC 2985</span>, <span class="seriesInfo">DOI 10.17487/RFC2985</span>, <time datetime="2000-11">November 2000</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2985">https://www.rfc-editor.org/info/rfc2985</a>&gt;</span>. </dd>
+<dt id="RFC2986">[RFC2986]</dt>
+<dd>
+<span class="refAuthor">Nystrom, M.</span><span class="refAuthor"> and B. Kaliski</span>, <span class="refTitle">"PKCS #10: Certification Request Syntax Specification Version 1.7"</span>, <span class="seriesInfo">RFC 2986</span>, <span class="seriesInfo">DOI 10.17487/RFC2986</span>, <time datetime="2000-11">November 2000</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2986">https://www.rfc-editor.org/info/rfc2986</a>&gt;</span>. </dd>
+<dt id="RFC5272">[RFC5272]</dt>
+<dd>
+<span class="refAuthor">Schaad, J.</span><span class="refAuthor"> and M. Myers</span>, <span class="refTitle">"Certificate Management over CMS (CMC)"</span>, <span class="seriesInfo">RFC 5272</span>, <span class="seriesInfo">DOI 10.17487/RFC5272</span>, <time datetime="2008-06">June 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc5272">https://www.rfc-editor.org/info/rfc5272</a>&gt;</span>. </dd>
+<dt id="RFC6347">[RFC6347]</dt>
+<dd>
+<span class="refAuthor">Rescorla, E.</span><span class="refAuthor"> and N. Modadugu</span>, <span class="refTitle">"Datagram Transport Layer Security Version 1.2"</span>, <span class="seriesInfo">RFC 6347</span>, <span class="seriesInfo">DOI 10.17487/RFC6347</span>, <time datetime="2012-01">January 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc6347">https://www.rfc-editor.org/info/rfc6347</a>&gt;</span>. </dd>
+<dt id="RFC7030">[RFC7030]</dt>
+<dd>
+<span class="refAuthor">Pritikin, M., Ed.</span><span class="refAuthor">, Yee, P., Ed.</span><span class="refAuthor">, and D. Harkins, Ed.</span>, <span class="refTitle">"Enrollment over Secure Transport"</span>, <span class="seriesInfo">RFC 7030</span>, <span class="seriesInfo">DOI 10.17487/RFC7030</span>, <time datetime="2013-10">October 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7030">https://www.rfc-editor.org/info/rfc7030</a>&gt;</span>. </dd>
+<dt id="RFC7228">[RFC7228]</dt>
+<dd>
+<span class="refAuthor">Bormann, C.</span><span class="refAuthor">, Ersue, M.</span><span class="refAuthor">, and A. Keranen</span>, <span class="refTitle">"Terminology for Constrained-Node Networks"</span>, <span class="seriesInfo">RFC 7228</span>, <span class="seriesInfo">DOI 10.17487/RFC7228</span>, <time datetime="2014-05">May 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7228">https://www.rfc-editor.org/info/rfc7228</a>&gt;</span>. </dd>
+<dt id="RFC8392">[RFC8392]</dt>
+<dd>
+<span class="refAuthor">Jones, M.</span><span class="refAuthor">, Wahlstroem, E.</span><span class="refAuthor">, Erdtman, S.</span><span class="refAuthor">, and H. Tschofenig</span>, <span class="refTitle">"CBOR Web Token (CWT)"</span>, <span class="seriesInfo">RFC 8392</span>, <span class="seriesInfo">DOI 10.17487/RFC8392</span>, <time datetime="2018-05">May 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8392">https://www.rfc-editor.org/info/rfc8392</a>&gt;</span>. </dd>
+</dl>
+</section>
+</section>
+<div id="alternative-auth">
+<section id="section-appendix.a">
+      <h2 id="name-other-authentication-method">
+<a href="#section-appendix.a" class="section-number selfRef">Appendix A. </a><a href="#name-other-authentication-method" class="section-name selfRef">Other Authentication Methods</a>
+      </h2>
+<div id="ttp-assisted-authentication">
+<section id="section-a.1">
+        <h2 id="name-ttp-assisted-authentication">
+<a href="#section-a.1" class="section-number selfRef">A.1. </a><a href="#name-ttp-assisted-authentication" class="section-name selfRef">TTP Assisted Authentication</a>
+        </h2>
+<p id="section-a.1-1">Trusted third party (TTP) based provisioning, such as the OSCORE profile of ACE <span>[<a href="#I-D.ietf-ace-oscore-profile" class="xref">I-D.ietf-ace-oscore-profile</a>]</span> assumes existing security associations between the client and the TTP, and between the server and the TTP. This setup allows for reduced message overhead and round trips compared to the full-fledged EDHOC key exchange. Following the ACE terminology the TTP plays the role of the Authorization Server (AS), the EST-oscore client corresponds to the ACE client and the EST-oscore server is the ACE Resource Server (RS).<a href="#section-a.1-1" class="pilcrow">¶</a></p>
+<span id="name-accessing-est-services-usin"></span><div id="fig-ttp">
+<figure id="figure-3">
+          <div class="artwork art-text alignCenter" id="section-a.1-2.1">
+<pre>
++------------+                               +------------+
+|            |                               |            |
+|            | ---(A)- Token Request ------&gt; |  Trusted   |
+|            |                               |   Third    |
+|            | &lt;--(B)- Access Token -------  | Party (AS) |
+|            |                               |            |
+|            |                               +------------+
+| EST-oscore |                                  |     ^
+|   Client   |                                 (F)   (E)
+|(ACE Client)|                                  V     |
+|            |                               +------------+
+|            |                               |            |
+|            | -(C)- Token + EST Request --&gt; | EST-oscore |
+|            |                               | server (RS)|
+|            | &lt;--(D)--- EST response ------ |            |
+|            |                               |            |
++------------+                               +------------+
+
+
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-accessing-est-services-usin" class="selfRef">Accessing EST services using a TTP for authenticated key establishment and authorization.</a>
+          </figcaption></figure>
+</div>
+<p id="section-a.1-3">During initial enrollment the EST-oscore client uses its existing security association with the TTP, which replaces the Implicit TA database, to establish an authenticated secure channel. The <span>[<a href="#I-D.ietf-ace-oscore-profile" class="xref">I-D.ietf-ace-oscore-profile</a>]</span> ACE profile RECOMMENDS the use of OSCORE between client and TTP (AS), but TLS or DTLS MAY be used additionally or instead. The client requests an access token at the TTP corresponding the EST service it wants to access. If the client request was invalid, or not authorized according to the local EST policy, the AS returns an error response as described in Section 5.6.3 of <span>[<a href="#I-D.ietf-ace-oauth-authz" class="xref">I-D.ietf-ace-oauth-authz</a>]</span>. In its responses the TTP (AS) SHOULD signal that the use of OSCORE is REQUIRED for a specific access token as indicated in section 4.3 of <span>[<a href="#I-D.ietf-ace-oscore-profile" class="xref">I-D.ietf-ace-oscore-profile</a>]</span>. This means that the EST-oscore client MUST use OSCORE towards all EST-oscore servers (RS) for which this access token is valid, and follow Section 4.3 in <span>[<a href="#I-D.ietf-ace-oscore-profile" class="xref">I-D.ietf-ace-oscore-profile</a>]</span> to derive the security context to run OSCORE. The ACE OSCORE profile RECOMMENDS the use of CBOR web token (CWT) as specified in <span>[<a href="#RFC8392" class="xref">RFC8392</a>]</span>. The TTP (AS) MUST also provision an OSCORE security context to the EST-oscore client and EST-oscore server (RS), which is then used to secure the subsequent messages between the client and the server.  The details on how to transfer the OSCORE contexts are described in section 3.2 of <span>[<a href="#I-D.ietf-ace-oscore-profile" class="xref">I-D.ietf-ace-oscore-profile</a>]</span>.<a href="#section-a.1-3" class="pilcrow">¶</a></p>
+<p id="section-a.1-4">Once the client has retrieved the access token it follows the steps in <span>[<a href="#I-D.ietf-ace-oscore-profile" class="xref">I-D.ietf-ace-oscore-profile</a>]</span> to install the OSCORE security context and presents the token to the EST-oscore server. The EST-oscore server installs the corresponding OSCORE context and can either verify the validity of the token locally or request a token introspection at the TTP. In either case EST policy decisions, e.g., which client can request enrollment or reenrollment, can be implemented at the TTP. Finally the EST-oscore client receives a response from the EST-oscore server.<a href="#section-a.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="psk-based-authentication">
+<section id="section-a.2">
+        <h2 id="name-psk-based-authentication">
+<a href="#section-a.2" class="section-number selfRef">A.2. </a><a href="#name-psk-based-authentication" class="section-name selfRef">PSK Based Authentication</a>
+        </h2>
+<p id="section-a.2-1">Another method to bootstrap EST services requires a pre-shared OSCORE context between the EST-oscore client and EST-oscore server. Authentication using the Implicit TA is no longer required since the shared security context authenticates both parties. The client and server have access to the same master secret as well as<a href="#section-a.2-1" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-a.2-2.1">a server identifier<a href="#section-a.2-2.1" class="pilcrow">¶</a>
+</li>
+<li id="section-a.2-2.2">a client identifier<a href="#section-a.2-2.2" class="pilcrow">¶</a>
+</li>
+<li id="section-a.2-2.3">a context identifier<a href="#section-a.2-2.3" class="pilcrow">¶</a>
+</li>
+<li id="section-a.2-2.4">an AEAD algorithm<a href="#section-a.2-2.4" class="pilcrow">¶</a>
+</li>
+<li id="section-a.2-2.5">an HKDF algorithm<a href="#section-a.2-2.5" class="pilcrow">¶</a>
+</li>
+<li id="section-a.2-2.6">a salt<a href="#section-a.2-2.6" class="pilcrow">¶</a>
+</li>
+<li id="section-a.2-2.7">a replay window type and size<a href="#section-a.2-2.7" class="pilcrow">¶</a>
+</li>
+</ul>
+<p id="section-a.2-3">The OSCORE specification <span>[<a href="#RFC8613" class="xref">RFC8613</a>]</span> makes use of the 'kid context' header parameter in the COSE object to indicate which OSCORE security context to use.<a href="#section-a.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="edhoc-with-alternative-authentication-methods">
+<section id="section-a.3">
+        <h2 id="name-edhoc-with-alternative-auth">
+<a href="#section-a.3" class="section-number selfRef">A.3. </a><a href="#name-edhoc-with-alternative-auth" class="section-name selfRef">EDHOC with alternative authentication methods</a>
+        </h2>
+<p id="section-a.3-1"><a href="#edhoc" class="xref">Section 3.1</a> describes the use of EDHOC in combination with certificates during the initial bootstrap phase. The latter requires that the Implicit TA is equipped with certificates capable of authenticating the EST-oscore server. Since EDHOC also supports authentication with RPKs and PSKs, the Implicit TA can be populated alternatively with RPKs and PSKs. Similarly to <a href="#edhoc" class="xref">Section 3.1</a>, client authentication can be performed with long-lived RPKs or long-lived PSKs, installed by the manufacturer. Re-enrollment requests can be authenticated through a valid certificate issued previously by the EST-oscore server or by using the key material available in the Implicit TA.<a href="#section-a.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="cbor-encoding-of-est-payloads">
+<section id="section-appendix.b">
+      <h2 id="name-cbor-encoding-of-est-payloa">
+<a href="#section-appendix.b" class="section-number selfRef">Appendix B. </a><a href="#name-cbor-encoding-of-est-payloa" class="section-name selfRef">CBOR Encoding of EST Payloads</a>
+      </h2>
+<p id="section-appendix.b-1">Current EST based specifications transport messages using the ASN.1 data type declaration. It would be favorable to use a more compact representation better suitable for constrained device implementations. In this appendix we list CBOR encodings of requests and responses of the mandatory EST functions (see <a href="#est-functions" class="xref">Section 4.2</a>).<a href="#section-appendix.b-1" class="pilcrow">¶</a></p>
+<div id="distribution-of-ca-certificates-crts">
+<section id="section-b.1">
+        <h2 id="name-distribution-of-ca-certific">
+<a href="#section-b.1" class="section-number selfRef">B.1. </a><a href="#name-distribution-of-ca-certific" class="section-name selfRef">Distribution of CA Certificates (/crts)</a>
+        </h2>
+<p id="section-b.1-1">The EST client can request a copy of the current CA certificates.
+In EST-coaps and EST-oscore this is done using a GET request to /crts (with empty payload). 
+The response contains a chain of certificates used to establish an Explicit Trust Anchor database for subsequent authentication of the EST server.<a href="#section-b.1-1" class="pilcrow">¶</a></p>
+<p id="section-b.1-2">CBOR encoding of X.509 certificates is specified in <span>[<a href="#I-D.raza-ace-cbor-certificates" class="xref">I-D.raza-ace-cbor-certificates</a>]</span>. CBOR encoding of certificate chains is specified below. This allows for certificates encoded using the CBOR certificate format, or as binary X.509 data wrapped as a CBOR byte string.<a href="#section-b.1-2" class="pilcrow">¶</a></p>
+<p id="section-b.1-3">CDDL:<a href="#section-b.1-3" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-b.1-4">
+<pre>
+certificate chain = (
+   + certificate : bstr
+)
+certificate = x509_certificate / cbor_certificate
+</pre><a href="#section-b.1-4" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="enrollmentre-enrollment-of-clients-sen-sren">
+<section id="section-b.2">
+        <h2 id="name-enrollment-re-enrollment-of">
+<a href="#section-b.2" class="section-number selfRef">B.2. </a><a href="#name-enrollment-re-enrollment-of" class="section-name selfRef">Enrollment/Re-enrollment of Clients (/sen, /sren)</a>
+        </h2>
+<p id="section-b.2-1">Existing EST standards specify the enrollment request to be a PKCS#10 formated message <span>[<a href="#RFC2986" class="xref">RFC2986</a>]</span>. The essential information fields for the CA to verify are the following:<a href="#section-b.2-1" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-b.2-2.1">Information about the subject, here condensed to the subject common name,<a href="#section-b.2-2.1" class="pilcrow">¶</a>
+</li>
+<li id="section-b.2-2.2">subject public key, and<a href="#section-b.2-2.2" class="pilcrow">¶</a>
+</li>
+<li id="section-b.2-2.3">signature made by the subject private key.<a href="#section-b.2-2.3" class="pilcrow">¶</a>
+</li>
+</ul>
+<p id="section-b.2-3">CDDL:<a href="#section-b.2-3" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-b.2-4">
+<pre>
+certificate request = (
+   subject_common_name : bstr,
+   public_key : bstr
+   signature : bstr,
+   ? ( signature_alg : int, public_key_info : int )
+)
+</pre><a href="#section-b.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-b.2-5">The response to the enrollment request is the subject certificate, for which CBOR encoding is specified in <span>[<a href="#I-D.raza-ace-cbor-certificates" class="xref">I-D.raza-ace-cbor-certificates</a>]</span>.<a href="#section-b.2-5" class="pilcrow">¶</a></p>
+<p id="section-b.2-6">The same message content in request and response applies to re-enrollment.<a href="#section-b.2-6" class="pilcrow">¶</a></p>
+<p id="section-b.2-7">TBD  PKCS#10 allows inclusion of attributes, which can be used to specify extension requests, see Section 5.4.2 in <span>[<a href="#RFC2985" class="xref">RFC2985</a>]</span>. Are these attributes important for the scenarios we care about, or can we allow the CA to decide this?<a href="#section-b.2-7" class="pilcrow">¶</a></p>
+<div id="cbor-certificate-request-examples">
+<section id="section-b.2.1">
+          <h3 id="name-cbor-certificate-request-ex">
+<a href="#section-b.2.1" class="section-number selfRef">B.2.1. </a><a href="#name-cbor-certificate-request-ex" class="section-name selfRef">CBOR Certificate Request Examples</a>
+          </h3>
+<p id="section-b.2.1-1">Here is an example of CBOR encoding of certificate request as defined in the previous section.<a href="#section-b.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-b.2.1-2">114 bytes:<a href="#section-b.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-b.2.1-3">(
+  h'0123456789ABCDF0',
+  h'61eb80d2abf7d7e4139c86b87e42466f1b4220d3f7ff9d6a1ae298fb9adbb464',
+  h'30440220064348b9e52ee0da9f9884d8dd41248c49804ab923330e208a168172dcae1
+  27a02206a06c05957f1db8c4e207437b9ab7739cb857aa6dd9486627b8961606a2b68ae'
+)<a href="#section-b.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-b.2.1-4">In the example above the signature is generated on an ASN.1 data structure. To validate this, the receiver needs to reconstruct the original data structure. Alternatively, in native mode, the signature is generated on the profiled data structure, in which case the overall overhead is further reduced.<a href="#section-b.2.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="asn1-certificate-request-examples">
+<section id="section-b.2.2">
+          <h3 id="name-asn1-certificate-request-ex">
+<a href="#section-b.2.2" class="section-number selfRef">B.2.2. </a><a href="#name-asn1-certificate-request-ex" class="section-name selfRef">ASN.1 Certificate Request Examples</a>
+          </h3>
+<p id="section-b.2.2-1">A corresponding certificate request of the previous section using ASN.1 is shown in <a href="#fig-ASN1" class="xref">Figure 4</a>.<a href="#section-b.2.2-1" class="pilcrow">¶</a></p>
+<span id="name-asn1-structure"></span><div id="fig-ASN1">
+<figure id="figure-4">
+            <div class="artwork art-text alignCenter" id="section-b.2.2-2.1">
+<pre>
+SEQUENCE {
+   SEQUENCE {
+     INTEGER 0
+     SEQUENCE {
+       SET {
+         SEQUENCE {
+           OBJECT IDENTIFIER commonName (2 5 4 3)
+           UTF8String '01-23-45-67-89-AB-CD-F0'
+           }
+         }
+       }
+     SEQUENCE {
+       SEQUENCE {
+         OBJECT IDENTIFIER ecPublicKey (1 2 840 10045 2 1)
+         OBJECT IDENTIFIER prime256v1 (1 2 840 10045 3 1 7)
+         }
+       BIT STRING
+         (65 byte public key)
+       }
+   SEQUENCE {
+     OBJECT IDENTIFIER ecdsaWithSHA256 (1 2 840 10045 4 3 2)
+     }
+   BIT STRING
+     (64 byte signature)
+</pre>
+</div>
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<a href="#name-asn1-structure" class="selfRef">ASN.1 Structure.</a>
+            </figcaption></figure>
+</div>
+<p id="section-b.2.2-3">In Base64, 375 bytes:<a href="#section-b.2.2-3" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-b.2.2-4">
+<pre>
+-----BEGIN CERTIFICATE REQUEST-----
+MIHcMIGEAgEAMCIxIDAeBgNVBAMMFzAxLTIzLTQ1LTY3LTg5LUFCLUNELUYwMFkw
+EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYeuA0qv31+QTnIa4fkJGbxtCINP3/51q
+GuKY+5rbtGSeZn3l8rVbU0jVEBWvKhAd98JeqgsuauGHRNWt2FqJ1aAAMAoGCCqG
+SM49BAMCA0cAMEQCIAZDSLnlLuDan5iE2N1BJIxJgEq5IzMOIIoWgXLcrhJ6AiBq
+BsBZV/HbjE4gdDe5q3c5y4V6pt2UhmJ7iWFgaitorg==
+-----END CERTIFICATE REQUEST-----
+</pre><a href="#section-b.2.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-b.2.2-5">In hex, 221 bytes:<a href="#section-b.2.2-5" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-b.2.2-6">
+<pre>
+3081dc30818402010030223120301e06035504030c1730312d32332d34352d36
+372d38392d41422d43442d46303059301306072a8648ce3d020106082a8648ce
+3d0301070342000461eb80d2abf7d7e4139c86b87e42466f1b4220d3f7ff9d6a
+1ae298fb9adbb4649e667de5f2b55b5348d51015af2a101df7c25eaa0b2e6ae1
+8744d5add85a89d5a000300a06082a8648ce3d04030203470030440220064348
+b9e52ee0da9f9884d8dd41248c49804ab923330e208a168172dcae127a02206a
+06c05957f1db8c4e207437b9ab7739cb857aa6dd9486627b8961606a2b68ae
+</pre><a href="#section-b.2.2-6" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="other-explicit-ta-material">
+<section id="section-appendix.c">
+      <h2 id="name-other-explicit-ta-material">
+<a href="#section-appendix.c" class="section-number selfRef">Appendix C. </a><a href="#name-other-explicit-ta-material" class="section-name selfRef">Other Explicit TA Material</a>
+      </h2>
+<p id="section-appendix.c-1">TBD Currently the all EST specifications provide the /crts (or /cacerts) endpoint . A successful request from the client to this endpoint will be answered with a bag of certificates which is subsequently installed in the Explicit TA. Should we optionally support new endpoints, e.g., /rpks and/or /psks, which would return a set or RPKs and PSKs to be installed in the Explicit TA? Support for this type of key material in the Explicit TA result in smaller messages sizes.<a href="#section-appendix.c-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="section-appendix.d">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Göran Selander</span></div>
+<div dir="auto" class="left"><span class="org">Ericsson AB</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:goran.selander@ericsson.com" class="email">goran.selander@ericsson.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Shahid Raza</span></div>
+<div dir="auto" class="left"><span class="org">RISE</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:shahid.raza@ri.se" class="email">shahid.raza@ri.se</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Martin Furuhed</span></div>
+<div dir="auto" class="left"><span class="org">Nexus</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:martin.furuhed@nexusgroup.com" class="email">martin.furuhed@nexusgroup.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Malisa Vucinic</span></div>
+<div dir="auto" class="left"><span class="org">INRIA</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:malisa.vucinic@inria.fr" class="email">malisa.vucinic@inria.fr</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Timothy Claeys</span></div>
+<div dir="auto" class="left"><span class="org">INRIA</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:timothy.claeys@inria.fr" class="email">timothy.claeys@inria.fr</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
