@@ -5,13 +5,13 @@
 ACE Working Group                                            G. Selander
 Internet-Draft                                               Ericsson AB
 Intended status: Standards Track                                 S. Raza
-Expires: 24 April 2021                                              RISE
+Expires: 25 April 2021                                              RISE
                                                               M. Furuhed
                                                                    Nexus
                                                               M. Vucinic
                                                                T. Claeys
                                                                    INRIA
-                                                         21 October 2020
+                                                         22 October 2020
 
 
                   Protecting EST Payloads with OSCORE
@@ -42,7 +42,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2021.
+   This Internet-Draft will expire on 25 April 2021.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Selander, et al.          Expires 24 April 2021                 [Page 1]
+Selander, et al.          Expires 25 April 2021                 [Page 1]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -70,37 +70,37 @@ Internet-Draft                 EST-oscore                   October 2020
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
-     1.1.  EST-coaps operational differences . . . . . . . . . . . .   4
-   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     1.1.  Operational Differences with EST-coaps  . . . . . . . . .   4
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   5
    3.  OSCORE and Authenticated Key Establishment  . . . . . . . . .   5
-     3.1.  EDHOC . . . . . . . . . . . . . . . . . . . . . . . . . .   5
-   4.  Protocol Design and Layering  . . . . . . . . . . . . . . . .   6
-     4.1.  Discovery and URI . . . . . . . . . . . . . . . . . . . .   6
-     4.2.  Mandatory/optional EST Functions  . . . . . . . . . . . .   7
-     4.3.  Payload formats . . . . . . . . . . . . . . . . . . . . .   7
-     4.4.  Message Bindings  . . . . . . . . . . . . . . . . . . . .   9
-     4.5.  CoAP response codes . . . . . . . . . . . . . . . . . . .   9
-     4.6.  Message fragmentation . . . . . . . . . . . . . . . . . .   9
-     4.7.  Delayed Responses . . . . . . . . . . . . . . . . . . . .   9
-   5.  HTTP-CoAP registrar . . . . . . . . . . . . . . . . . . . . .  10
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
-   7.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .  10
-   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  11
-   9.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  11
-   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
-     10.1.  Normative References . . . . . . . . . . . . . . . . . .  11
-     10.2.  Informative References . . . . . . . . . . . . . . . . .  12
-   Appendix A.  Other Authentication Methods . . . . . . . . . . . .  14
-     A.1.  TTP Assisted Authentication . . . . . . . . . . . . . . .  14
-     A.2.  PSK Based Authentication  . . . . . . . . . . . . . . . .  15
-     A.3.  EDHOC with alternative authentication methods . . . . . .  16
-   Appendix B.  CBOR Encoding of EST Payloads  . . . . . . . . . . .  16
-     B.1.  Distribution of CA Certificates (/crts) . . . . . . . . .  16
+     3.1.  EDHOC . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     3.2.  EDHOC with alternative authentication methods . . . . . .   7
+   4.  Protocol Design and Layering  . . . . . . . . . . . . . . . .   7
+     4.1.  Discovery and URI . . . . . . . . . . . . . . . . . . . .   7
+     4.2.  Distribution of RPKs  . . . . . . . . . . . . . . . . . .   8
+     4.3.  Mandatory/optional EST Functions  . . . . . . . . . . . .   8
+     4.4.  Payload formats . . . . . . . . . . . . . . . . . . . . .   9
+     4.5.  Message Bindings  . . . . . . . . . . . . . . . . . . . .  10
+     4.6.  CoAP response codes . . . . . . . . . . . . . . . . . . .  10
+     4.7.  Message fragmentation . . . . . . . . . . . . . . . . . .  10
+     4.8.  Delayed Responses . . . . . . . . . . . . . . . . . . . .  10
+   5.  HTTP-CoAP registrar . . . . . . . . . . . . . . . . . . . . .  11
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  11
+   7.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .  11
+   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+   9.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  12
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  12
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  13
+   Appendix A.  Other Authentication Methods . . . . . . . . . . . .  15
+     A.1.  TTP Assisted Authentication . . . . . . . . . . . . . . .  15
+     A.2.  PSK Based Authentication  . . . . . . . . . . . . . . . .  16
+   Appendix B.  CBOR Encoding of EST Payloads  . . . . . . . . . . .  17
+     B.1.  Distribution of CA Certificates (/crts) . . . . . . . . .  17
      B.2.  Enrollment/Re-enrollment of Clients (/sen, /sren) . . . .  17
-       B.2.1.  CBOR Certificate Request Examples . . . . . . . . . .  17
+       B.2.1.  CBOR Certificate Request Examples . . . . . . . . . .  18
        B.2.2.  ASN.1 Certificate Request Examples  . . . . . . . . .  18
-   Appendix C.  Other Explicit TA Material . . . . . . . . . . . . .  19
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  19
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  20
 
 
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Selander, et al.          Expires 24 April 2021                 [Page 2]
+Selander, et al.          Expires 25 April 2021                 [Page 2]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -155,7 +155,8 @@ Internet-Draft                 EST-oscore                   October 2020
    Other methods for key establishment are described in Appendix A.
 
    Other ways to optimize the performance of certificate enrollment and
-   certificate based authentication include the use of:
+   certificate based authentication described in this draft include the
+   use of:
 
    *  Compact representations of X.509 certificates (see
       [I-D.mattsson-cose-cbor-cert-compress])
@@ -164,43 +165,66 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-
-Selander, et al.          Expires 24 April 2021                 [Page 3]
+Selander, et al.          Expires 25 April 2021                 [Page 3]
 
 Internet-Draft                 EST-oscore                   October 2020
 
 
    *  Compact representations of EST payloads (see Appendix B)
 
-1.1.  EST-coaps operational differences
+1.1.  Operational Differences with EST-coaps
 
-   This specification builds on EST-coaps [I-D.ietf-ace-coap-est] but
-   transport layer security provided by DTLS is replaced, or
-   complemented, by protection of the application layer data.  This
-   specification deviates from EST-coaps in the following respects:
+   The protection of EST payloads defined in this document builds on
+   EST-coaps [I-D.ietf-ace-coap-est] but transport layer security
+   provided by DTLS is replaced, or complemented, by protection of the
+   transfer- and application layer data (i.e., CoAP message fields and
+   payload).  This specification deviates from EST-coaps in the
+   following respects:
 
    *  The DTLS record layer is replaced, or complemented, with OSCORE.
 
-   *  The DTLS handshake is replaced, or complemented, with the EDHOC
-      key exchange protocol [I-D.ietf-lake-edhoc] completing the analogy
-      with EST-coaps.  EDHOC can also leverage its support for static
-      Diffie-Hellman keys.  The latter enables that certificates
-      containing static DH public keys can be used for authentication of
-      a Diffie-Hellman key exchange.
+   *  The DTLS handshake is replaced, or complemented, with the
+      lightweight authenticated key exchange protocol EDHOC
+      [I-D.ietf-lake-edhoc].
 
-      -  The use of a Diffie-Hellman key exchange authenticated with
-         certificates adds significant overhead in terms of message size
-         and round trips which is not necessary for the enrollment
-         procedure.  The main reason for specifying this is to align
-         with EST-coaps, and reuse a security protocol rather than
-         defining a special security protocol for enrollment.
-         Appendix A discusses alternative authentication and secure
-         communication methods.
+      -  Authentication based on certificates is complemented with
+         authentication based on raw public keys.
+
+      -  Authentication based on signature keys is complemented with
+         authentication based on static Diffie-Hellman keys, for
+         certificates/raw public keys.
+
+      -  Authentication based on certificate by value is complemented
+         with authentication based on certificate/raw public keys by
+         reference.
+
+   *  One new EST payload /rpks is defined for installation of explicit
+      TAs in the EST client.
 
    *  The EST payloads protected by OSCORE can be proxied between
       constrained networks supporting CoAP/CoAPs and non-constrained
       networks supporting HTTP/HTTPs with a CoAP-HTTP proxy protection
-      without any security processing in the proxy.
+      without any security processing in the proxy (see Section 5).
+
+   So, while the actual payloads protected by EST-oscore are essentially
+   the same as that of EST-coaps, there are differences with respect to
+   authentication.  The reason for these deviations is that a
+   significant overhead can be removed in terms of message sizes and
+   round trips by using a different handshake, public key type or
+   transported credential, and this is independent of the enrollment
+   procedure.
+
+   Appendix A discusses alternative authentication and secure
+   communication methods.
+
+
+
+
+
+Selander, et al.          Expires 25 April 2021                 [Page 4]
+
+Internet-Draft                 EST-oscore                   October 2020
+
 
 2.  Terminology
 
@@ -212,19 +236,6 @@ Internet-Draft                 EST-oscore                   October 2020
 
    This document uses terminology from [I-D.ietf-ace-coap-est] which in
    turn is based on [RFC7030] and, in turn, on [RFC5272].
-
-
-
-
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                 [Page 4]
-
-Internet-Draft                 EST-oscore                   October 2020
-
 
 3.  OSCORE and Authenticated Key Establishment
 
@@ -254,6 +265,23 @@ Internet-Draft                 EST-oscore                   October 2020
    establishment, a set of actions are required which are further
    described below.
 
+
+
+
+
+
+
+
+
+
+
+
+
+Selander, et al.          Expires 25 April 2021                 [Page 5]
+
+Internet-Draft                 EST-oscore                   October 2020
+
+
 3.1.  EDHOC
 
    The EST-oscore client and server use the EDHOC key establishment
@@ -271,16 +299,6 @@ Internet-Draft                 EST-oscore                   October 2020
    *  previously issued certificates (e.g., an existing certificate
       issued by the EST server); this could be a common case for simple
       re-enrollment of clients.
-
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                 [Page 5]
-
-Internet-Draft                 EST-oscore                   October 2020
-
 
    *  previously installed certificates (e.g., installed by the
       manufacturer).  Manufacturer installed certificates are expected
@@ -300,6 +318,41 @@ Internet-Draft                 EST-oscore                   October 2020
    ChallengePassword in the attributes section of the PKCS#10 Request to
    prove that the client is indeed in control of the private key at the
    time of the EDHOC key exchange.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Selander, et al.          Expires 25 April 2021                 [Page 6]
+
+Internet-Draft                 EST-oscore                   October 2020
+
+
+3.2.  EDHOC with alternative authentication methods
+
+   Section 3.1 describes the use of EDHOC in combination with
+   certificates during the initial bootstrap phase.  The latter requires
+   that the Implicit TA is equipped with certificates capable of
+   authenticating the EST-oscore server.  Since EDHOC also supports
+   authentication with RPKs, the Implicit TA can be populated
+   alternatively with RPKs.  Similarly to Section 3.1, client
+   authentication can be performed with long-lived RPKs installed by the
+   manufacturer.  Re-enrollment requests can be authenticated through a
+   valid certificate issued previously by the EST-oscore server or by
+   using the key material available in the Implicit TA.
+
+   TODO: Integrate this section in the body TODO: Review Implicit TA vs
+   Explicit TA
 
 4.  Protocol Design and Layering
 
@@ -328,22 +381,35 @@ Internet-Draft                 EST-oscore                   October 2020
    indicated by the "osc" attribute defined in Section 9 of [RFC8613],
    for example:
 
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                 [Page 6]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
         REQ: GET /.well-known/core?rt=ace.est.sen
 
         RES: 2.05 Content
       </est>; rt="ace.est";osc
 
-4.2.  Mandatory/optional EST Functions
+
+
+
+Selander, et al.          Expires 25 April 2021                 [Page 7]
+
+Internet-Draft                 EST-oscore                   October 2020
+
+
+4.2.  Distribution of RPKs
+
+   The EST client can request a copy of the current CA public keys.
+
+   TODO: map relevant parts of section 4.1 of RFC 7030 and other EST
+   function related content from RFC7030 and EST-coaps
+
+   RATIONALE: EST-coaps provides the /crts operation.  A successful
+   request from the client to this resource will be answered with a bag
+   of certificates which is subsequently installed in the Explicit TA.
+   Analogously we define here the new EST function /rpks which returns a
+   set of RPKs to be installed in the Explicit TA.  Support for this
+   type of key material in the Explicit TA result in smaller messages
+   sizes.
+
+4.3.  Mandatory/optional EST Functions
 
    The EST-oscore specification has the same set of required-to-
    implement functions as EST-coaps.  The content of Table 1 is adapted
@@ -369,30 +435,28 @@ Internet-Draft                 EST-oscore                   October 2020
                     Table 1: Mandatory and optional EST-
                               oscore functions
 
-4.3.  Payload formats
+   TODO: Add /rpks OPTIONAL
+
+
+
+
+
+
+
+
+
+Selander, et al.          Expires 25 April 2021                 [Page 8]
+
+Internet-Draft                 EST-oscore                   October 2020
+
+
+4.4.  Payload formats
 
    Similar to EST-coaps, EST-oscore allows transport of the ASN.1
    structure of a given Media-Type in binary format.  In addition, EST-
    oscore uses the same CoAP Content-Format Options to transport EST
    requests and responses . Table 2 summarizes the information from
    Section 5.3 in [I-D.ietf-ace-coap-est].
-
-
-
-
-
-
-
-
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                 [Page 7]
-
-Internet-Draft                 EST-oscore                   October 2020
-
 
            +=======+===================================+=======+
            | URI   | Content-Format                    | #IANA |
@@ -434,23 +498,20 @@ Internet-Draft                 EST-oscore                   October 2020
                 Table 2: EST functions and there associated
                         Media-Type and IANA numbers
 
+
+
+
+Selander, et al.          Expires 25 April 2021                 [Page 9]
+
+Internet-Draft                 EST-oscore                   October 2020
+
+
    NOTE: CBOR is becoming a de facto encoding scheme in IoT settings.
    There is already work in progress on CBOR encoding of X.509
    certificates [I-D.mattsson-cose-cbor-cert-compress], and this can be
    extended to other EST messages, see Appendix B.
 
-
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                 [Page 8]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
-4.4.  Message Bindings
+4.5.  Message Bindings
 
    The EST-oscore message characteristics are identical to those
    specified in Section 5.4 of [I-D.ietf-ace-coap-est].  It is
@@ -465,11 +526,11 @@ Internet-Draft                 EST-oscore                   October 2020
    *  The EST URLs based on https:// are translated to coap://, but with
       mandatory use of the CoAP OSCORE option.
 
-4.5.  CoAP response codes
+4.6.  CoAP response codes
 
    See Section 5.5 in [I-D.ietf-ace-coap-est].
 
-4.6.  Message fragmentation
+4.7.  Message fragmentation
 
    The EDHOC key exchange with asymmetric keys and certificates for
    authentication can result in large messages.  It is RECOMMENDED to
@@ -488,7 +549,7 @@ Internet-Draft                 EST-oscore                   October 2020
    as described in Section 5.6 of [I-D.ietf-ace-coap-est] to limit the
    size of the CoAP payload.
 
-4.7.  Delayed Responses
+4.8.  Delayed Responses
 
    See Section 5.7 in [I-D.ietf-ace-coap-est].
 
@@ -496,12 +557,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                 [Page 9]
+Selander, et al.          Expires 25 April 2021                [Page 10]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -557,7 +613,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 24 April 2021                [Page 10]
+Selander, et al.          Expires 25 April 2021                [Page 11]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -613,7 +669,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 24 April 2021                [Page 11]
+Selander, et al.          Expires 25 April 2021                [Page 12]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -669,7 +725,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 24 April 2021                [Page 12]
+Selander, et al.          Expires 25 April 2021                [Page 13]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -725,7 +781,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 24 April 2021                [Page 13]
+Selander, et al.          Expires 25 April 2021                [Page 14]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -735,9 +791,8 @@ Appendix A.  Other Authentication Methods
    In order to protect certificate enrollment with OSCORE, the necessary
    keying material (notably, the OSCORE Master Secret, see [RFC8613])
    needs to be established between EST-oscore client and EST-oscore
-   server.  In this appendix we analyse alternatives to EDHOC
-   authenticated with certificates, which was assumed in the body of
-   this specification.
+   server.  In this appendix we analyse alternatives to EDHOC, which was
+   assumed in the body of this specification.
 
 A.1.  TTP Assisted Authentication
 
@@ -778,15 +833,15 @@ A.1.  TTP Assisted Authentication
    OSCORE between client and TTP (AS), but TLS or DTLS MAY be used
    additionally or instead.  The client requests an access token at the
    TTP corresponding the EST service it wants to access.  If the client
+   request was invalid, or not authorized according to the local EST
 
 
 
-Selander, et al.          Expires 24 April 2021                [Page 14]
+Selander, et al.          Expires 25 April 2021                [Page 15]
 
 Internet-Draft                 EST-oscore                   October 2020
 
 
-   request was invalid, or not authorized according to the local EST
    policy, the AS returns an error response as described in
    Section 5.6.3 of [I-D.ietf-ace-oauth-authz].  In its responses the
    TTP (AS) SHOULD signal that the use of OSCORE is REQUIRED for a
@@ -834,29 +889,14 @@ A.2.  PSK Based Authentication
 
    *  a master salt, and
 
+   *  a replay window size.
 
 
 
-Selander, et al.          Expires 24 April 2021                [Page 15]
+Selander, et al.          Expires 25 April 2021                [Page 16]
 
 Internet-Draft                 EST-oscore                   October 2020
 
-
-   *  a replay window size.
-
-A.3.  EDHOC with alternative authentication methods
-
-   Section 3.1 describes the use of EDHOC in combination with
-   certificates during the initial bootstrap phase.  The latter requires
-   that the Implicit TA is equipped with certificates capable of
-   authenticating the EST-oscore server.  Since EDHOC also supports
-   authentication with RPKs and PSKs, the Implicit TA can be populated
-   alternatively with RPKs and PSKs.  Similarly to Section 3.1, client
-   authentication can be performed with long-lived RPKs or long-lived
-   PSKs, installed by the manufacturer.  Re-enrollment requests can be
-   authenticated through a valid certificate issued previously by the
-   EST-oscore server or by using the key material available in the
-   Implicit TA.
 
 Appendix B.  CBOR Encoding of EST Payloads
 
@@ -864,7 +904,7 @@ Appendix B.  CBOR Encoding of EST Payloads
    data type declaration.  It would be favorable to use a more compact
    representation better suitable for constrained device
    implementations.  In this appendix we list CBOR encodings of requests
-   and responses of the mandatory EST functions (see Section 4.2).
+   and responses of the mandatory EST functions (see Section 4.3).
 
 B.1.  Distribution of CA Certificates (/crts)
 
@@ -887,17 +927,6 @@ B.1.  Distribution of CA Certificates (/crts)
    )
    certificate = x509_certificate / cbor_certificate
 
-
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                [Page 16]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
 B.2.  Enrollment/Re-enrollment of Clients (/sen, /sren)
 
    Existing EST standards specify the enrollment request to be a PKCS#10
@@ -912,6 +941,18 @@ B.2.  Enrollment/Re-enrollment of Clients (/sen, /sren)
    *  signature made by the subject private key.
 
    CDDL:
+
+
+
+
+
+
+
+
+Selander, et al.          Expires 25 April 2021                [Page 17]
+
+Internet-Draft                 EST-oscore                   October 2020
+
 
    certificate request = (
       subject_common_name : bstr,
@@ -945,15 +986,6 @@ B.2.1.  CBOR Certificate Request Examples
    e1 27a02206a06c05957f1db8c4e207437b9ab7739cb857aa6dd9486627b8961606a2
    b68ae' )
 
-
-
-
-
-Selander, et al.          Expires 24 April 2021                [Page 17]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
    In the example above the signature is generated on an ASN.1 data
    structure.  To validate this, the receiver needs to reconstruct the
    original data structure.  Alternatively, in native mode, the
@@ -964,6 +996,19 @@ B.2.2.  ASN.1 Certificate Request Examples
 
    A corresponding certificate request of the previous section using
    ASN.1 is shown in Figure 4.
+
+
+
+
+
+
+
+
+
+Selander, et al.          Expires 25 April 2021                [Page 18]
+
+Internet-Draft                 EST-oscore                   October 2020
+
 
        SEQUENCE {
           SEQUENCE {
@@ -1002,14 +1047,6 @@ B.2.2.  ASN.1 Certificate Request Examples
    BsBZV/HbjE4gdDe5q3c5y4V6pt2UhmJ7iWFgaitorg==
    -----END CERTIFICATE REQUEST-----
 
-
-
-
-Selander, et al.          Expires 24 April 2021                [Page 18]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
    In hex, 221 bytes:
 
    3081dc30818402010030223120301e06035504030c1730312d32332d34352d36
@@ -1020,15 +1057,14 @@ Internet-Draft                 EST-oscore                   October 2020
    b9e52ee0da9f9884d8dd41248c49804ab923330e208a168172dcae127a02206a
    06c05957f1db8c4e207437b9ab7739cb857aa6dd9486627b8961606a2b68ae
 
-Appendix C.  Other Explicit TA Material
 
-   TBD Currently all EST specifications provide the /crts (or /cacerts)
-   endpoint.  A successful request from the client to this endpoint will
-   be answered with a bag of certificates which is subsequently
-   installed in the Explicit TA.  Should we optionally support new
-   endpoints, e.g., /rpks and/or /psks, which would return a set or RPKs
-   and PSKs to be installed in the Explicit TA?  Support for this type
-   of key material in the Explicit TA result in smaller messages sizes.
+
+
+
+Selander, et al.          Expires 25 April 2021                [Page 19]
+
+Internet-Draft                 EST-oscore                   October 2020
+
 
 Authors' Addresses
 
@@ -1056,16 +1092,6 @@ Authors' Addresses
    Email: malisa.vucinic@inria.fr
 
 
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                [Page 19]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
    Timothy Claeys
    INRIA
 
@@ -1091,30 +1117,4 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Selander, et al.          Expires 24 April 2021                [Page 20]
+Selander, et al.          Expires 25 April 2021                [Page 20]
