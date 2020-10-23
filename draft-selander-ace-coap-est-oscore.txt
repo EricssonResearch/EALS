@@ -5,13 +5,13 @@
 ACE Working Group                                            G. Selander
 Internet-Draft                                               Ericsson AB
 Intended status: Standards Track                                 S. Raza
-Expires: 25 April 2021                                              RISE
+Expires: 26 April 2021                                              RISE
                                                               M. Furuhed
                                                                    Nexus
                                                               M. Vucinic
                                                                T. Claeys
                                                                    INRIA
-                                                         22 October 2020
+                                                         23 October 2020
 
 
                   Protecting EST Payloads with OSCORE
@@ -42,7 +42,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 April 2021.
+   This Internet-Draft will expire on 26 April 2021.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 1]
+Selander, et al.          Expires 26 April 2021                 [Page 1]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 2]
+Selander, et al.          Expires 26 April 2021                 [Page 2]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -144,8 +144,7 @@ Internet-Draft                 EST-oscore                   October 2020
    6TiSCH [I-D.ietf-6tisch-minimal-security], or for securing multicast
    CoAP messages [I-D.ietf-core-oscore-groupcomm].  Where OSCORE is
    implemented and used for communication security, the reuse of OSCORE
-   for other purposes, such as enrollment, reduces the implementation
-   footprint.
+   for other purposes, such as enrollment, reduces the code footprint.
 
    In order to protect certificate enrollment with OSCORE, the necessary
    keying material (notably, the OSCORE Master Secret, see [RFC8613])
@@ -165,7 +164,8 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 3]
+
+Selander, et al.          Expires 26 April 2021                 [Page 3]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -185,7 +185,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
    *  The DTLS handshake is replaced, or complemented, with the
       lightweight authenticated key exchange protocol EDHOC
-      [I-D.ietf-lake-edhoc].
+      [I-D.ietf-lake-edhoc], and makes use of the following features:
 
       -  Authentication based on certificates is complemented with
          authentication based on raw public keys.
@@ -198,30 +198,30 @@ Internet-Draft                 EST-oscore                   October 2020
          with authentication based on certificate/raw public keys by
          reference.
 
-   *  One new EST payload /rpks is defined for installation of explicit
-      TAs in the EST client.
+   *  One new EST function, /rpks, is defined for installation of
+      explicit TAs in the EST client.
 
    *  The EST payloads protected by OSCORE can be proxied between
       constrained networks supporting CoAP/CoAPs and non-constrained
       networks supporting HTTP/HTTPs with a CoAP-HTTP proxy protection
       without any security processing in the proxy (see Section 5).
 
-   So, while the actual payloads protected by EST-oscore are essentially
-   the same as that of EST-coaps, there are differences with respect to
-   authentication.  The reason for these deviations is that a
-   significant overhead can be removed in terms of message sizes and
-   round trips by using a different handshake, public key type or
-   transported credential, and this is independent of the enrollment
-   procedure.
+   So, while the same authentication scheme (Diffie-Hellman key exchange
+   authenticated with transported certificates) and the same EST
+   payloads as EST-coaps also apply to EST-oscore, the latter specifies
+   other authentication schemes and a new matching EST function.  The
+   reason for these deviations is that a significant overhead can be
+   removed in terms of message sizes and round trips by using a
+   different handshake, public key type or transported credential, and
+   those are independent of the actual enrollment procedure.
 
-   Appendix A discusses alternative authentication and secure
+   Appendix A discusses yet other authentication and secure
    communication methods.
 
 
 
 
-
-Selander, et al.          Expires 25 April 2021                 [Page 4]
+Selander, et al.          Expires 26 April 2021                 [Page 4]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -277,7 +277,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 5]
+Selander, et al.          Expires 26 April 2021                 [Page 5]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -333,7 +333,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 6]
+Selander, et al.          Expires 26 April 2021                 [Page 6]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -389,7 +389,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 7]
+Selander, et al.          Expires 26 April 2021                 [Page 7]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -445,7 +445,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 8]
+Selander, et al.          Expires 26 April 2021                 [Page 8]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -501,7 +501,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                 [Page 9]
+Selander, et al.          Expires 26 April 2021                 [Page 9]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -557,7 +557,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 10]
+Selander, et al.          Expires 26 April 2021                [Page 10]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -613,7 +613,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 11]
+Selander, et al.          Expires 26 April 2021                [Page 11]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -669,7 +669,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 12]
+Selander, et al.          Expires 26 April 2021                [Page 12]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -725,7 +725,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 13]
+Selander, et al.          Expires 26 April 2021                [Page 13]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -781,7 +781,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 14]
+Selander, et al.          Expires 26 April 2021                [Page 14]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -837,7 +837,7 @@ A.1.  TTP Assisted Authentication
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 15]
+Selander, et al.          Expires 26 April 2021                [Page 15]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -893,7 +893,7 @@ A.2.  PSK Based Authentication
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 16]
+Selander, et al.          Expires 26 April 2021                [Page 16]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -949,7 +949,7 @@ B.2.  Enrollment/Re-enrollment of Clients (/sen, /sren)
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 17]
+Selander, et al.          Expires 26 April 2021                [Page 17]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -1005,7 +1005,7 @@ B.2.2.  ASN.1 Certificate Request Examples
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 18]
+Selander, et al.          Expires 26 April 2021                [Page 18]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -1061,7 +1061,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 19]
+Selander, et al.          Expires 26 April 2021                [Page 19]
 
 Internet-Draft                 EST-oscore                   October 2020
 
@@ -1117,4 +1117,4 @@ Authors' Addresses
 
 
 
-Selander, et al.          Expires 25 April 2021                [Page 20]
+Selander, et al.          Expires 26 April 2021                [Page 20]
