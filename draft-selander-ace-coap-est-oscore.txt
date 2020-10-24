@@ -175,11 +175,10 @@ Internet-Draft                 EST-oscore                   October 2020
 1.1.  Operational Differences with EST-coaps
 
    The protection of EST payloads defined in this document builds on
-   EST-coaps [I-D.ietf-ace-coap-est] but transport layer security
-   provided by DTLS is replaced, or complemented, by protection of the
-   transfer- and application layer data (i.e., CoAP message fields and
-   payload).  This specification deviates from EST-coaps in the
-   following respects:
+   EST-coaps [I-D.ietf-ace-coap-est] but transport layer security is
+   replaced, or complemented, by protection of the transfer- and
+   application layer data (i.e., CoAP message fields and payload).  This
+   specification deviates from EST-coaps in the following respects:
 
    *  The DTLS record layer is replaced, or complemented, with OSCORE.
 
@@ -221,6 +220,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
+
 Selander, et al.          Expires 27 April 2021                 [Page 4]
 
 Internet-Draft                 EST-oscore                   October 2020
@@ -247,7 +247,7 @@ Internet-Draft                 EST-oscore                   October 2020
    certificates for exchanging trust anchor information is provided by
    the TrustAnchorInfo structure of [RFC5914], the mandatory parts of
    which essentially is the SubjectPublicKeyInfo structure [RFC5280],
-   i.e. the algorithm followed by the public key.
+   i.e. an algorithm identifier followed by a public key.
 
 3.  Authentication
 
