@@ -72,7 +72,7 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
      1.1.  Operational Differences with EST-coaps  . . . . . . . . .   4
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   5
-   3.  OSCORE and Authenticated Key Establishment  . . . . . . . . .   5
+   3.  Authentication  . . . . . . . . . . . . . . . . . . . . . . .   5
      3.1.  EDHOC . . . . . . . . . . . . . . . . . . . . . . . . . .   5
      3.2.  Channel Binding . . . . . . . . . . . . . . . . . . . . .   6
      3.3.  EDHOC with alternative authentication methods . . . . . .   6
@@ -249,7 +249,7 @@ Internet-Draft                 EST-oscore                   October 2020
    which essentially is the SubjectPublicKeyInfo structure [RFC5280],
    i.e. the algorithm followed by the public key.
 
-3.  OSCORE and Authenticated Key Establishment
+3.  Authentication
 
    EST-oscore clients and servers MUST perform mutual authentication.
    The client MUST authenticate the server before the enrolment is
