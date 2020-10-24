@@ -347,8 +347,9 @@ Internet-Draft                 EST-oscore                   October 2020
 4.  Protocol Design and Layering
 
    EST-oscore uses CoAP [RFC7252] and Block-Wise [RFC7959] to transfer
-   EST messages in the same way as [I-D.ietf-ace-coap-est].  Figure 1
-   below shows the layered EST-oscore architecture.
+   EST messages in the same way as [I-D.ietf-ace-coap-est].  Instead of
+   DTLS record layer, OSCORE [RFC8613] is used to protect the EST
+   payloads.  Figure 1 below shows the layered EST-oscore architecture.
 
             +------------------------------------------------+
             |          EST request/response messages         |
@@ -360,7 +361,7 @@ Internet-Draft                 EST-oscore                   October 2020
 
                     Figure 1: EST protected with OSCORE.
 
-   EST-oscore follows closely the EST-coaps and EST design.
+   EST-oscore follows the EST-coaps and EST design.
 
 4.1.  Discovery and URI
 
@@ -383,9 +384,8 @@ Internet-Draft                 EST-oscore                   October 2020
    TODO: map relevant parts of section 4.1 of RFC 7030 and other EST
    function related content from RFC7030 and EST-coaps
 
-   RATIONALE: EST-coaps provides the /crts operation.  A successful
-   request from the client to this resource will be answered with a bag
-   of certificates which is subsequently installed in the Explicit TA.
+
+
 
 
 
@@ -394,6 +394,9 @@ Selander, et al.          Expires 27 April 2021                 [Page 7]
 Internet-Draft                 EST-oscore                   October 2020
 
 
+   RATIONALE: EST-coaps provides the /crts operation.  A successful
+   request from the client to this resource will be answered with a bag
+   of certificates which is subsequently installed in the Explicit TA.
    Analogously we define here the new EST function /rpks which returns a
    set of RPKs to be installed in the Explicit TA.  Support for this
    type of key material in the Explicit TA result in smaller messages
@@ -434,9 +437,6 @@ Internet-Draft                 EST-oscore                   October 2020
    oscore uses the same CoAP Content-Format Options to transport EST
    requests and responses . Table 2 summarizes the information from
    Section 5.3 in [I-D.ietf-ace-coap-est].
-
-
-
 
 
 
