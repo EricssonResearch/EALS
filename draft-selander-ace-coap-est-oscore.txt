@@ -199,7 +199,7 @@ Internet-Draft                 EST-oscore                   October 2020
          reference.
 
    *  One new EST function, /rpks, is defined for installation of
-      explicit TAs in the EST client.
+      compact explicit TAs in the EST client.
 
    *  The EST payloads protected by OSCORE can be proxied between
       constrained networks supporting CoAP/CoAPs and non-constrained
