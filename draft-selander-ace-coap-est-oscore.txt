@@ -78,10 +78,10 @@ Table of Contents
      3.3.  Channel Binding . . . . . . . . . . . . . . . . . . . . .   6
      3.4.  Optimizations . . . . . . . . . . . . . . . . . . . . . .   7
      3.5.  RPK-based Trust Anchors . . . . . . . . . . . . . . . . .   7
-   4.  Protocol Design and Layering  . . . . . . . . . . . . . . . .   7
+   4.  Protocol Design and Layering  . . . . . . . . . . . . . . . .   8
      4.1.  Discovery and URI . . . . . . . . . . . . . . . . . . . .   8
      4.2.  Distribution of RPKs  . . . . . . . . . . . . . . . . . .   8
-     4.3.  Mandatory/optional EST Functions  . . . . . . . . . . . .   8
+     4.3.  Mandatory/optional EST Functions  . . . . . . . . . . . .   9
      4.4.  Payload formats . . . . . . . . . . . . . . . . . . . . .   9
      4.5.  Message Bindings  . . . . . . . . . . . . . . . . . . . .  11
      4.6.  CoAP response codes . . . . . . . . . . . . . . . . . . .  11
@@ -244,13 +244,12 @@ Internet-Draft                 EST-oscore                  November 2020
    trust anchor represents an authoritative entity via a public key and
    associated data.  The public key is used to verify digital
    signatures, and the associated data is used to constrain the types of
-   information for which the trust anchor is authoritative."
-
-   One example of specifying more compact alternatives to X.509
-   certificates for exchanging trust anchor information is provided by
-   the TrustAnchorInfo structure of [RFC5914], the mandatory parts of
-   which essentially is the SubjectPublicKeyInfo structure [RFC5280],
-   i.e., an algorithm identifier followed by a public key.
+   information for which the trust anchor is authoritative."  One
+   example of specifying more compact alternatives to X.509 certificates
+   for exchanging trust anchor information is provided by the
+   TrustAnchorInfo structure of [RFC5914], the mandatory parts of which
+   essentially is the SubjectPublicKeyInfo structure [RFC5280], i.e., an
+   algorithm identifier followed by a public key.
 
 3.  Authentication
 
@@ -277,6 +276,7 @@ Internet-Draft                 EST-oscore                  November 2020
 
 
 
+
 Selander, et al.           Expires 6 May 2021                   [Page 5]
 
 Internet-Draft                 EST-oscore                  November 2020
@@ -285,14 +285,14 @@ Internet-Draft                 EST-oscore                  November 2020
 3.1.  EDHOC
 
    EDHOC supports authentication with certificates/raw public keys
-   (which we refer to as "credentials"), and the credentials may either
-   be transported in the protocol, or referenced.  This is determined by
+   (referred to as "credentials"), and the credentials may either be
+   transported in the protocol, or referenced.  This is determined by
    the identifier of the credential of the endpoint, ID_CRED_x for x=
-   Initiator/Responder, which is transported in EDHOC.  This identifier
-   may be the credential itself (in which case the credential is
-   transported), or a pointer such as a URI to the credential, or some
-   other identifier which enables the receiving endpoint to retrieve the
-   credential.
+   Initiator/Responder, which is transported in an EDHOC message.  This
+   identifier may be the credential itself (in which case the credential
+   is transported), or a pointer such as a URI to the credential (e.g.,
+   x5t, see [I-D.ietf-cose-x509]) or some other identifier which enables
+   the receiving endpoint to retrieve the credential.
 
 3.2.  Certificate-based Authentication
 
@@ -304,8 +304,8 @@ Internet-Draft                 EST-oscore                  November 2020
    database and use it for subsequent authentications.
 
    The EST client certificate SHOULD conform to [RFC7925].  The EST
-   client certificate MAY be a natively signed CBOR certificate
-   [I-D.mattsson-cose-cbor-cert-compress]
+   client and/or EST server certificate MAY be a (natively signed) CBOR
+   certificate [I-D.mattsson-cose-cbor-cert-compress].
 
 3.3.  Channel Binding
 
@@ -324,11 +324,11 @@ Internet-Draft                 EST-oscore                  November 2020
 
    where length equals the desired length of the edhoc-unique byte
    string.  The client then adds the edhoc-unique byte string as a
-   ChallengePassword in the attributes section of the PKCS#10 Request to
-   prove to the server that the authenticated EDHOC client is in
-   possession of the private key associated with the certification
-   request, and was able to sign the certification request after the
-   EDHOC session was established.
+   challengePassword (see Section 5.4.1 of [RFC2985]) in the attributes
+   section of the PKCS#10 Request to prove to the server that the
+   authenticated EDHOC client is in possession of the private key
+   associated with the certification request, and signed the
+   certification request after the EDHOC session was established.
 
 
 
@@ -350,40 +350,40 @@ Internet-Draft                 EST-oscore                  November 2020
       defined in [I-D.mattsson-cose-cbor-cert-compress].
 
    *  The certificate MAY be referenced instead of transported
-      [I-D.ietf-cose-x509].  If the EST-oscore server can use
-      information in ID_CRED_x to access the EST-oscore client
-      certificate, e.g. in a directory or database provided by the
-      issuer, then the certificate may not to be transported over a
-      potentially constrained link from the client.
+      [I-D.ietf-cose-x509].  The EST-oscore server MAY use information
+      in the credential identifier field of the EDHOC message
+      (ID_CRED_x) to access the EST-oscore client certificate, e.g., in
+      a directory or database provided by the issuer.  In this case the
+      certificate may not need to be transported over a constrained link
+      between EST client and server.
 
    *  Conversely, the response to the PKCS#10 request MAY be a reference
-      to the enrolled certificate instead of the certificate itself.
-      The issuer may post the newly generated certificate to a directory
-      or database, and provide the client with a pointer to the
-      certificate in the enrolment response.
+      to the enrolled certificate rather than the certificate itself.
+      The EST-oscore server MAY in the enrolment response to the EST-
+      oscore client include a pointer to a directory or database where
+      the certificate can be retrieved.
 
 3.5.  RPK-based Trust Anchors
 
-   A trust anchor is typically a self-signed certificate of the CA
-   public key.  In order to reduce overhead in transporting, the trust
-   anchor could be just the CA public key and associated data, e.g. the
-   SubjectPublicKeyInfo, or a public key certificate without the
+   A trust anchor is commonly a self-signed certificate of the CA public
+   key.  In order to reduce transport overhead, the trust anchor could
+   be just the CA public key and associated data (see Section 2), e.g.,
+   the SubjectPublicKeyInfo, or a public key certificate without the
    signature.  In either case they can be compactly encoded, e.g. using
-   CBOR encoding [I-D.mattsson-cose-cbor-cert-compress].
+   CBOR encoding [I-D.mattsson-cose-cbor-cert-compress].  A client MAY
+   request an unsigned trust anchors using the /rpks function (see
+   Section 4.2).
 
    Client authentication can be performed with long-lived RPKs installed
    by the manufacturer.  Re-enrollment requests can be authenticated
    through a valid certificate issued previously by the EST-oscore
-   server or by using the key material available in the Implicit TA.
+   server or by using the key material available in the Implicit TA
+   database.
 
-   TODO: Review Implicit TA vs Explicit TA
+   TODO: Sanity check this.  Review the use of Implicit TA vs. Explicit
+   TA.
 
-4.  Protocol Design and Layering
 
-   EST-oscore uses CoAP [RFC7252] and Block-Wise [RFC7959] to transfer
-   EST messages in the same way as [I-D.ietf-ace-coap-est].  Instead of
-   DTLS record layer, OSCORE [RFC8613] is used to protect the EST
-   payloads.  Figure 1 below shows the layered EST-oscore architecture.
 
 
 
@@ -393,6 +393,13 @@ Selander, et al.           Expires 6 May 2021                   [Page 7]
 
 Internet-Draft                 EST-oscore                  November 2020
 
+
+4.  Protocol Design and Layering
+
+   EST-oscore uses CoAP [RFC7252] and Block-Wise [RFC7959] to transfer
+   EST messages in the same way as [I-D.ietf-ace-coap-est].  Instead of
+   DTLS record layer, OSCORE [RFC8613] is used to protect the EST
+   payloads.  Figure 1 below shows the layered EST-oscore architecture.
 
             +------------------------------------------------+
             |          EST request/response messages         |
@@ -404,7 +411,7 @@ Internet-Draft                 EST-oscore                  November 2020
 
                     Figure 1: EST protected with OSCORE.
 
-   EST-oscore follows the EST-coaps and EST design.
+   EST-oscore follows much of the EST-coaps and EST design.
 
 4.1.  Discovery and URI
 
@@ -424,23 +431,16 @@ Internet-Draft                 EST-oscore                  November 2020
 
    The EST client can request a copy of the current CA public keys.
 
-   TODO: map relevant parts of section 4.1 of RFC 7030 and other EST
-   function related content from RFC7030 and EST-coaps
+   TODO: Map relevant parts of section 4.1 of RFC 7030 and other EST
+   function related content from RFC7030 and EST-coaps.
 
    RATIONALE: EST-coaps provides the /crts operation.  A successful
    request from the client to this resource will be answered with a bag
    of certificates which is subsequently installed in the Explicit TA.
-   Analogously we define here the new EST function /rpks which returns a
-   set of RPKs to be installed in the Explicit TA.  Support for this
-   type of key material in the Explicit TA result in smaller messages
-   sizes.
+   Motivated by the specification of more compact trust anchors (see
+   Section 2) we define here the new EST function /rpks which returns a
+   set of RPKs to be installed in the Explicit TA database.
 
-4.3.  Mandatory/optional EST Functions
-
-   The EST-oscore specification has the same set of required-to-
-   implement functions as EST-coaps.  The content of Table 1 is adapted
-   from Section 5.2 in [I-D.ietf-ace-coap-est] and uses the updated URI
-   paths (see Section 4.1).
 
 
 
@@ -449,6 +449,13 @@ Selander, et al.           Expires 6 May 2021                   [Page 8]
 
 Internet-Draft                 EST-oscore                  November 2020
 
+
+4.3.  Mandatory/optional EST Functions
+
+   The EST-oscore specification has the same set of required-to-
+   implement functions as EST-coaps.  The content of Table 1 is adapted
+   from Section 5.2 in [I-D.ietf-ace-coap-est] and uses the updated URI
+   paths (see Section 4.1).
 
                +===============+===========================+
                | EST functions | EST-oscore implementation |
@@ -478,13 +485,6 @@ Internet-Draft                 EST-oscore                  November 2020
    oscore uses the same CoAP Content-Format Options to transport EST
    requests and responses . Table 2 summarizes the information from
    Section 5.3 in [I-D.ietf-ace-coap-est].
-
-
-
-
-
-
-
 
 
 
@@ -583,30 +583,30 @@ Internet-Draft                 EST-oscore                  November 2020
 
 4.7.  Message fragmentation
 
-   The EDHOC key exchange with asymmetric keys and certificates for
-   authentication can result in large messages.  It is RECOMMENDED to
-   prevent IP fragmentation, since it involves an error-prone datagram
-   reconstitution.  In addition, this specification targets resource
-   constrained networks such as IEEE 802.15.4 where throughput is
-   limited and fragment loss can trigger costly retransmissions.  Even
-   though ECC-based certificates are an improvement over the RSA or DSA
-   counterparts, they can still amount to roughly a 1000 bytes per
-   certificate depending on the used algorithms, curves, OIDs, Subject
-   Alternative Names (SAN) and cert fields.  Additionally, in response
-   to a client request to /crts an EST-oscore server might answer with
-   multiple certificates.  This is another motivation for the need for
-   more compact EST payloads, see Appendix B.  This specification
-   further employs the CoAP Block1 and Block2 fragmentation mechanisms
-   as described in Section 5.6 of [I-D.ietf-ace-coap-est] to limit the
-   size of the CoAP payload.
+   The EDHOC key exchange is optimized for message overhead, in
+   particular the use of static DH keys instead of signature keys for
+   authentication (e.g., method 3 of [I-D.ietf-lake-edhoc]).  Together
+   with various measures listed in this document such as CBOR payloads
+   (Appendix B), CBOR certificates
+   [I-D.mattsson-cose-cbor-cert-compress], certificates by reference
+   (Section 3.4), and trust anchors without signature (Section 3.5), a
+   significant reduction of message sizes can be achieved.
+
+   Nevertheless, depending on application, the protocol messages may
+   become larger than available frame size resulting in fragmentation
+   and, in resource constrained networks such as IEEE 802.15.4 where
+   throughput is limited, fragment loss can trigger costly
+   retransmissions.
+
+   It is RECOMMENDED to prevent IP fragmentation, since it involves an
+   error-prone datagram reconstitution.  To limit the size of the CoAP
+   payload, this specification mandates the implementation of CoAP
+   option Block1 and Block2 fragmentation mechanism [RFC7959] as
+   described in Section 5.6 of [I-D.ietf-ace-coap-est].
 
 4.8.  Delayed Responses
 
    See Section 5.7 in [I-D.ietf-ace-coap-est].
-
-
-
-
 
 
 
@@ -770,8 +770,8 @@ Internet-Draft                 EST-oscore                  November 2020
               Tiloca, M., Selander, G., Palombini, F., and J. Park,
               "Group OSCORE - Secure Group Communication for CoAP", Work
               in Progress, Internet-Draft, draft-ietf-core-oscore-
-              groupcomm-09, 23 June 2020, <http://www.ietf.org/internet-
-              drafts/draft-ietf-core-oscore-groupcomm-09.txt>.
+              groupcomm-10, 2 November 2020, <http://www.ietf.org/
+              internet-drafts/draft-ietf-core-oscore-groupcomm-10.txt>.
 
 
 
@@ -798,15 +798,16 @@ Internet-Draft                 EST-oscore                  November 2020
               Raza, S., Hoglund, J., Selander, G., Mattsson, J., and M.
               Furuhed, "CBOR Profile of X.509 Certificates", Work in
               Progress, Internet-Draft, draft-mattsson-cose-cbor-cert-
-              compress-01, 13 July 2020, <http://www.ietf.org/internet-
-              drafts/draft-mattsson-cose-cbor-cert-compress-01.txt>.
+              compress-02, 2 November 2020, <http://www.ietf.org/
+              internet-drafts/draft-mattsson-cose-cbor-cert-compress-
+              02.txt>.
 
    [I-D.palombini-core-oscore-edhoc]
               Palombini, F., Tiloca, M., Hoeglund, R., Hristozov, S.,
               and G. Selander, "Combining EDHOC and OSCORE", Work in
               Progress, Internet-Draft, draft-palombini-core-oscore-
-              edhoc-00, 13 July 2020, <http://www.ietf.org/internet-
-              drafts/draft-palombini-core-oscore-edhoc-00.txt>.
+              edhoc-01, 2 November 2020, <http://www.ietf.org/internet-
+              drafts/draft-palombini-core-oscore-edhoc-01.txt>.
 
    [RFC2985]  Nystrom, M. and B. Kaliski, "PKCS #9: Selected Object
               Classes and Attribute Types Version 2.0", RFC 2985,
@@ -831,7 +832,6 @@ Internet-Draft                 EST-oscore                  November 2020
    [RFC5914]  Housley, R., Ashmore, S., and C. Wallace, "Trust Anchor
               Format", RFC 5914, DOI 10.17487/RFC5914, June 2010,
               <https://www.rfc-editor.org/info/rfc5914>.
-
 
 
 
@@ -1052,10 +1052,10 @@ B.2.  Enrollment/Re-enrollment of Clients (/sen, /sren)
    The same message content in request and response applies to re-
    enrollment.
 
-   TBD PKCS#10 allows inclusion of attributes, which can be used to
-   specify extension requests, see Section 5.4.2 in [RFC2985].  Are
-   these attributes important for the scenarios we care about, or can we
-   allow the CA to decide this?
+   TODO: PKCS#10 allows inclusion of attributes, which can be used to
+   specify extension requests, see Section 5.4.2 of [RFC2985].  CBOR
+   encoding of the challengePassword attribute needs to be defined (see
+   Section 3.3).  What other attributes are relevant?
 
 
 
@@ -1146,7 +1146,7 @@ Internet-Draft                 EST-oscore                  November 2020
 
 Authors' Addresses
 
-   Göran Selander
+   Goeran Selander
    Ericsson AB
 
    Email: goran.selander@ericsson.com
