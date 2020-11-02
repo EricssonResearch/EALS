@@ -5,13 +5,13 @@
 ACE Working Group                                            G. Selander
 Internet-Draft                                               Ericsson AB
 Intended status: Standards Track                                 S. Raza
-Expires: 28 April 2021                                              RISE
+Expires: 6 May 2021                                                 RISE
                                                               M. Furuhed
                                                                    Nexus
                                                               M. Vucinic
                                                                T. Claeys
                                                                    INRIA
-                                                         25 October 2020
+                                                         2 November 2020
 
 
                   Protecting EST Payloads with OSCORE
@@ -42,7 +42,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 April 2021.
+   This Internet-Draft will expire on 6 May 2021.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Selander, et al.          Expires 28 April 2021                 [Page 1]
+Selander, et al.           Expires 6 May 2021                   [Page 1]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -73,10 +73,10 @@ Table of Contents
      1.1.  Operational Differences with EST-coaps  . . . . . . . . .   4
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   5
    3.  Authentication  . . . . . . . . . . . . . . . . . . . . . . .   5
-     3.1.  EDHOC . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  EDHOC . . . . . . . . . . . . . . . . . . . . . . . . . .   6
      3.2.  Certificate-based Authentication  . . . . . . . . . . . .   6
      3.3.  Channel Binding . . . . . . . . . . . . . . . . . . . . .   6
-     3.4.  Optimizations . . . . . . . . . . . . . . . . . . . . . .   6
+     3.4.  Optimizations . . . . . . . . . . . . . . . . . . . . . .   7
      3.5.  RPK-based Trust Anchors . . . . . . . . . . . . . . . . .   7
    4.  Protocol Design and Layering  . . . . . . . . . . . . . . . .   7
      4.1.  Discovery and URI . . . . . . . . . . . . . . . . . . . .   8
@@ -87,7 +87,7 @@ Table of Contents
      4.6.  CoAP response codes . . . . . . . . . . . . . . . . . . .  11
      4.7.  Message fragmentation . . . . . . . . . . . . . . . . . .  11
      4.8.  Delayed Responses . . . . . . . . . . . . . . . . . . . .  11
-   5.  HTTP-CoAP registrar . . . . . . . . . . . . . . . . . . . . .  12
+   5.  HTTP-CoAP Proxy . . . . . . . . . . . . . . . . . . . . . . .  12
    6.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
    7.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .  12
    8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Selander, et al.          Expires 28 April 2021                 [Page 2]
+Selander, et al.           Expires 6 May 2021                   [Page 2]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
 1.  Introduction
@@ -165,9 +165,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                 [Page 3]
+Selander, et al.           Expires 6 May 2021                   [Page 3]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    *  Compact representations of EST payloads (see Appendix B)
@@ -203,7 +203,10 @@ Internet-Draft                 EST-oscore                   October 2020
    *  The EST payloads protected by OSCORE can be proxied between
       constrained networks supporting CoAP/CoAPs and non-constrained
       networks supporting HTTP/HTTPs with a CoAP-HTTP proxy protection
-      without any security processing in the proxy (see Section 5).
+      without any security processing in the proxy (see Section 5).  The
+      concept "Registrar" and its required trust relation with EST
+      server as described in Section 6 of [I-D.ietf-ace-coap-est] is
+      therefore redundant.
 
    So, while the same authentication scheme (Diffie-Hellman key exchange
    authenticated with transported certificates) and the same EST
@@ -214,17 +217,17 @@ Internet-Draft                 EST-oscore                   October 2020
    different handshake, public key type or transported credential, and
    those are independent of the actual enrollment procedure.
 
+
+
+
+
+Selander, et al.           Expires 6 May 2021                   [Page 4]
+
+Internet-Draft                 EST-oscore                  November 2020
+
+
    Appendix A discusses yet other authentication and secure
    communication methods.
-
-
-
-
-
-Selander, et al.          Expires 28 April 2021                 [Page 4]
-
-Internet-Draft                 EST-oscore                   October 2020
-
 
 2.  Terminology
 
@@ -265,6 +268,20 @@ Internet-Draft                 EST-oscore                   October 2020
    authenticate the client and provide relevant information to the CA
    for decision about issuing a certificate.
 
+
+
+
+
+
+
+
+
+
+Selander, et al.           Expires 6 May 2021                   [Page 5]
+
+Internet-Draft                 EST-oscore                  November 2020
+
+
 3.1.  EDHOC
 
    EDHOC supports authentication with certificates/raw public keys
@@ -274,14 +291,6 @@ Internet-Draft                 EST-oscore                   October 2020
    Initiator/Responder, which is transported in EDHOC.  This identifier
    may be the credential itself (in which case the credential is
    transported), or a pointer such as a URI to the credential, or some
-
-
-
-Selander, et al.          Expires 28 April 2021                 [Page 5]
-
-Internet-Draft                 EST-oscore                   October 2020
-
-
    other identifier which enables the receiving endpoint to retrieve the
    credential.
 
@@ -321,6 +330,14 @@ Internet-Draft                 EST-oscore                   October 2020
    request, and was able to sign the certification request after the
    EDHOC session was established.
 
+
+
+
+Selander, et al.           Expires 6 May 2021                   [Page 6]
+
+Internet-Draft                 EST-oscore                  November 2020
+
+
 3.4.  Optimizations
 
    *  The last message of the EDHOC protocol, message_3, MAY be combined
@@ -328,15 +345,6 @@ Internet-Draft                 EST-oscore                   October 2020
       exchange and a protected CoAP request/response (which may contain
       an enrolment request and response) in two round trips
       [I-D.palombini-core-oscore-edhoc].
-
-
-
-
-
-Selander, et al.          Expires 28 April 2021                 [Page 6]
-
-Internet-Draft                 EST-oscore                   October 2020
-
 
    *  The certificates MAY be compressed, e.g. using the CBOR encoding
       defined in [I-D.mattsson-cose-cbor-cert-compress].
@@ -377,6 +385,15 @@ Internet-Draft                 EST-oscore                   October 2020
    DTLS record layer, OSCORE [RFC8613] is used to protect the EST
    payloads.  Figure 1 below shows the layered EST-oscore architecture.
 
+
+
+
+
+Selander, et al.           Expires 6 May 2021                   [Page 7]
+
+Internet-Draft                 EST-oscore                  November 2020
+
+
             +------------------------------------------------+
             |          EST request/response messages         |
             +------------------------------------------------+
@@ -386,13 +403,6 @@ Internet-Draft                 EST-oscore                   October 2020
             +------------------------------------------------+
 
                     Figure 1: EST protected with OSCORE.
-
-
-
-Selander, et al.          Expires 28 April 2021                 [Page 7]
-
-Internet-Draft                 EST-oscore                   October 2020
-
 
    EST-oscore follows the EST-coaps and EST design.
 
@@ -435,19 +445,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-
-
-
-
-
-
-
-
-
-
-Selander, et al.          Expires 28 April 2021                 [Page 8]
+Selander, et al.           Expires 6 May 2021                   [Page 8]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
                +===============+===========================+
@@ -501,9 +501,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                 [Page 9]
+Selander, et al.           Expires 6 May 2021                   [Page 9]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
            +=======+===================================+=======+
@@ -557,9 +557,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 10]
+Selander, et al.           Expires 6 May 2021                  [Page 10]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
 4.5.  Message Bindings
@@ -613,29 +613,30 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 11]
+Selander, et al.           Expires 6 May 2021                  [Page 11]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
-5.  HTTP-CoAP registrar
+5.  HTTP-CoAP Proxy
 
-   As is noted in Section 6 of [I-D.ietf-ace-coap-est], in real-world
+   As noted in Section 6 of [I-D.ietf-ace-coap-est], in real-world
    deployments, the EST server will not always reside within the CoAP
    boundary.  The EST-server can exist outside the constrained network
-   in a non-constrained network that does not support CoAP but HTTP,
-   thus requiring an intermediary CoAP-to-HTTP proxy.
+   in a non-constrained network that supports HTTP but not CoAP, thus
+   requiring an intermediary CoAP-to-HTTP proxy.
 
-   Since OSCORE is applicable to CoAP-mappable HTTP the EST payloads can
-   be protected end-to-end between EST client and EST server independent
-   of transport protocol or potential transport layer security which may
-   need to be terminated in the proxy, see Figure 2.  When using the
-   EDHOC key exchange protocol to establish a shared OSCORE security
-   context, PKCS#10 request MAY be bound to the OSCORE security context
-   using the procedure described in Section 3.1.  The mappings between
-   CoAP and HTTP referred to in Section 6 of [I-D.ietf-ace-coap-est]
-   apply and the additional mappings resulting from the use of OSCORE
-   are specified in Section 11 of [RFC8613].
+   Since OSCORE is applicable to CoAP-mappable HTTP (see Section 11 of
+   [RFC8613]) the EST payloads can be protected end-to-end between EST
+   client and EST server independent of transport protocol or potential
+   transport layer security which may need to be terminated in the
+   proxy, see Figure 2.  Therefore the concept "Registrar" and its
+   required trust relation with EST server as described in Section 6 of
+   [I-D.ietf-ace-coap-est] is redundant.
+
+   The mappings between CoAP and HTTP referred to in Section 9.1 of
+   [I-D.ietf-ace-coap-est] apply, and additional mappings resulting from
+   the use of OSCORE are specified in Section 11 of [RFC8613].
 
    OSCORE provides end-to-end security between EST Server and EST
    Client.  The use of TLS and DTLS is optional.
@@ -668,10 +669,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-
-Selander, et al.          Expires 28 April 2021                [Page 12]
+Selander, et al.           Expires 6 May 2021                  [Page 12]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
 8.  IANA Considerations
@@ -725,9 +725,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 13]
+Selander, et al.           Expires 6 May 2021                  [Page 13]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    [RFC8152]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
@@ -762,9 +762,9 @@ Internet-Draft                 EST-oscore                   October 2020
               Palombini, F., Seitz, L., Selander, G., and M. Gunnarsson,
               "OSCORE Profile of the Authentication and Authorization
               for Constrained Environments Framework", Work in Progress,
-              Internet-Draft, draft-ietf-ace-oscore-profile-12, 21
-              September 2020, <http://www.ietf.org/internet-drafts/
-              draft-ietf-ace-oscore-profile-12.txt>.
+              Internet-Draft, draft-ietf-ace-oscore-profile-13, 27
+              October 2020, <http://www.ietf.org/internet-drafts/draft-
+              ietf-ace-oscore-profile-13.txt>.
 
    [I-D.ietf-core-oscore-groupcomm]
               Tiloca, M., Selander, G., Palombini, F., and J. Park,
@@ -781,9 +781,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 14]
+Selander, et al.           Expires 6 May 2021                  [Page 14]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    [I-D.ietf-cose-x509]
@@ -837,9 +837,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 15]
+Selander, et al.           Expires 6 May 2021                  [Page 15]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    [RFC6024]  Reddy, R. and C. Wallace, "Trust Anchor Management
@@ -893,9 +893,9 @@ A.1.  TTP Assisted Authentication
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 16]
+Selander, et al.           Expires 6 May 2021                  [Page 16]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
         +------------+                               +------------+
@@ -949,9 +949,9 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 17]
+Selander, et al.           Expires 6 May 2021                  [Page 17]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    oscore server installs the corresponding OSCORE context and can
@@ -1005,9 +1005,9 @@ B.1.  Distribution of CA Certificates (/crts)
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 18]
+Selander, et al.           Expires 6 May 2021                  [Page 18]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    CBOR encoding of X.509 certificates is specified in
@@ -1061,9 +1061,9 @@ B.2.  Enrollment/Re-enrollment of Clients (/sen, /sren)
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 19]
+Selander, et al.           Expires 6 May 2021                  [Page 19]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
 B.2.1.  CBOR Certificate Request Examples
@@ -1117,9 +1117,9 @@ B.2.2.  ASN.1 Certificate Request Examples
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 20]
+Selander, et al.           Expires 6 May 2021                  [Page 20]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
                          Figure 4: ASN.1 Structure.
@@ -1173,9 +1173,9 @@ Authors' Addresses
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 21]
+Selander, et al.           Expires 6 May 2021                  [Page 21]
 
-Internet-Draft                 EST-oscore                   October 2020
+Internet-Draft                 EST-oscore                  November 2020
 
 
    Timothy Claeys
@@ -1229,4 +1229,4 @@ Internet-Draft                 EST-oscore                   October 2020
 
 
 
-Selander, et al.          Expires 28 April 2021                [Page 22]
+Selander, et al.           Expires 6 May 2021                  [Page 22]
